@@ -50,226 +50,22 @@ function initializeVisualization() {
   filteredNodes = [...graph.nodes];
   filteredLinks = [...graph.links];
   
-  if (currentView === 'network') {
-    initializeNetworkView();
-  } else if (currentView === 'blueprint') {
-    initializeBlueprintView();
-  } else if (currentView === 'timeline') {
-    initializeTimelineView();
-  } else if (currentView === 'map') {
-    initializeMapView();
-  }
-}
-
-function initializeNetworkView() {
-  const width = 900, height = 600;
-  svg = d3.select("#music-map")
-      .attr("viewBox", [0, 0, width, height])
-      .call(d3.zoom()
-        .scaleExtent([0.5, 3])
-        .on("zoom", function(event) {
-          svg.select(".main-group").attr("transform", event.transform);
-        }));
-  
-  // Clear previous content
-  svg.selectAll("*").remove();
-  
-  // Create main group for zoomable content
-  const mainGroup = svg.append("g").attr("class", "main-group");
-  
-  // Add grid overlay for technical feel
-  const gridGroup = mainGroup.append("g").attr("class", "grid-overlay");
-  
-  // Vertical grid lines
-  for (let x = 0; x <= width; x += 50) {
-    gridGroup.append("line")
-      .attr("class", "grid-line")
-      .attr("x1", x)
-      .attr("y1", 0)
-      .attr("x2", x)
-      .attr("y2", height);
-  }
-  
-  // Horizontal grid lines
-  for (let y = 0; y <= height; y += 50) {
-    gridGroup.append("line")
-      .attr("class", "grid-line")
-      .attr("x1", 0)
-      .attr("y1", y)
-      .attr("x2", width)
-      .attr("y2", y);
-  }
-  
+  // Initialize tooltip
   tooltip = VisualizationHelpers.initializeTooltip();
   
-  // Set up simulation with wing-based forces
-  simulation = d3.forceSimulation(graph.nodes)
-      .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => {
-        if (d.type === "wing_connection") return 80;
-        if (d.type === "creates") return 60;
-        if (d.type === "intra_wing_connection") return 100;
-        if (d.type === "inter_wing_connection") return 200;
-        if (d.type === "functional_bridge") return 180;
-        if (d.type === "hub_bridge") return 250;
-        return 120;
-      }).strength(d => {
-        if (d.type === "wing_connection") return 0.8;
-        if (d.type === "creates") return 0.9;
-        if (d.type === "intra_wing_connection") return 0.6;
-        if (d.type === "inter_wing_connection") return 0.3;
-        if (d.type === "functional_bridge") return 0.4;
-        if (d.type === "hub_bridge") return 0.2;
-        return 0.3;
-      }))
-      .force("charge", d3.forceManyBody().strength(d => {
-        if (d.group === "wing_hub") return -800;
-        if (d.group === "album") return -200;
-        if (d.group === "artist") return -150;
-        return -200;
-      }))
-      .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius(d => d.size + 10));
+  // Initialize the view manager with context
+  const svg = d3.select("#music-map");
+  const context = {
+    graph: graph,
+    albums: albums,
+    connectionVisibility: connectionVisibility,
+    svg: svg,
+    tooltip: tooltip
+  };
   
-  // Draw links with wing-based styling
-  const link = mainGroup.append("g")
-    .selectAll("line")
-    .data(graph.links)
-    .join("line")
-      .attr("class", d => `link ${d.type}`)
-      .attr("stroke", d => {
-        if (d.type === "wing_connection") return "#555";
-        if (d.type === "creates") return "#74b9ff";
-        if (d.type === "intra_wing_connection") return "#00b894";
-        if (d.type === "inter_wing_connection") return "#fd79a8";
-        if (d.type === "functional_bridge") return "#fdcb6e";
-        if (d.type === "hub_bridge") return "#a29bfe";
-        return "#aaa";
-      })
-      .attr("stroke-width", d => {
-        if (d.type === "wing_connection") return 3;
-        if (d.type === "creates") return 2;
-        if (d.type === "hub_bridge") return 4;
-        return 1.5;
-      })
-      .attr("stroke-dasharray", d => {
-        if (d.type === "wing_connection") return "0";
-        if (d.type === "creates") return "0";
-        if (d.type === "intra_wing_connection") return "5,5";
-        if (d.type === "inter_wing_connection") return "10,5";
-        if (d.type === "functional_bridge") return "8,4";
-        if (d.type === "hub_bridge") return "12,8";
-        return "5,5";
-      })
-      .attr("opacity", d => {
-        if (d.type === "wing_connection") return 0.7;
-        if (d.type === "creates") return 0.8;
-        if (d.type === "hub_bridge") return 0.9;
-        if (d.type === "intra_wing_connection") return 0.6;
-        if (d.type === "inter_wing_connection") return 0.4;
-        if (d.type === "functional_bridge") return 0.5;
-        return 0.3;
-      })
-      .style("display", d => connectionVisibility[d.type] ? "block" : "none");
-  
-  // Draw nodes with wing-based colors
-  const node = mainGroup.append("g")
-    .selectAll("circle")
-    .data(graph.nodes)
-    .join("circle")
-      .attr("class", "node")
-      .attr("r", d => d.size)
-      .attr("fill", d => {
-        if (d.group === "wing_hub") return d.wing.color;
-        if (d.group === "album") return d.wing.color;
-        if (d.group === "artist") return d.wing.color;
-        return "#ddd";
-      })
-      .attr("stroke", d => {
-        if (d.group === "wing_hub") return d.wing.strokeColor;
-        if (d.group === "album") return d.wing.strokeColor;
-        if (d.group === "artist") return d.wing.strokeColor;
-        return "#999";
-      })
-      .attr("stroke-width", d => {
-        if (d.group === "wing_hub") return 4;
-        if (d.group === "album") return 2;
-        return 1.5;
-      })
-      .on("mouseover", function(e, d) {
-          d3.select(this).transition().attr("r", d.size * 1.25);
-          VisualizationHelpers.showTooltip(tooltip, d, e);
-      })
-      .on("mousemove", function(e) {
-          VisualizationHelpers.updateTooltipPosition(tooltip, e);
-      })
-      .on("mouseout", function(e, d) {
-          d3.select(this).transition().attr("r", d.size);
-          VisualizationHelpers.hideTooltip(tooltip);
-      })
-      .on("click", function(e, d) {
-          // Highlight connected nodes
-          highlightConnectedNodes(d);
-      })
-      .on("dblclick", function(e, d) {
-          centerOnNode(d);
-      })
-      .call(drag(simulation));
-  
-  // Node labels
-  mainGroup.append("g")
-    .selectAll("text")
-    .data(graph.nodes)
-    .join("text")
-      .attr("dy", 4)
-      .attr("text-anchor", "middle")
-      .attr("font-size", 12)
-      .attr("fill", "#fafafa")
-      .text(d => d.id);
-  
-  // Simulation tick
-  simulation.on("tick", () => {
-    link
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
-  
-    node
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
-  
-    mainGroup.selectAll("text")
-        .attr("x", d => d.x)
-        .attr("y", d => d.y);
-  });
-  
-  // Enhanced drag functionality
-  function drag(simulation) {
-    function dragstarted(event, d) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
-    }
-    
-    function dragged(event, d) {
-      d.fx = event.x;
-      d.fy = event.y;
-    }
-    
-    function dragended(event, d) {
-      if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
-    }
-    
-    return d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended);
-  }
+  ViewManager.initializeViewManager(context);
 }
 
-// Alternative view implementations (placeholders for future development)
 function initializeBlueprintView() {
   const width = 900, height = 600;
   svg = d3.select("#music-map")
@@ -286,14 +82,6 @@ function initializeBlueprintView() {
     .attr("font-size", "24px")
     .attr("fill", "#74b9ff")
     .text("Blueprint View - Coming Soon");
-  
-  svg.append("text")
-    .attr("x", width/2)
-    .attr("y", height/2 + 30)
-    .attr("text-anchor", "middle")
-    .attr("font-size", "16px")
-    .attr("fill", "#999")
-    .text("Hierarchical machine blueprint with technical specifications");
 }
 
 function initializeTimelineView() {
@@ -312,14 +100,6 @@ function initializeTimelineView() {
     .attr("font-size", "24px")
     .attr("fill", "#74b9ff")
     .text("Timeline View - Coming Soon");
-  
-  svg.append("text")
-    .attr("x", width/2)
-    .attr("y", height/2 + 30)
-    .attr("text-anchor", "middle")
-    .attr("font-size", "16px")
-    .attr("fill", "#999")
-    .text("Chronological evolution of the machine over time");
 }
 
 function initializeMapView() {
@@ -338,17 +118,8 @@ function initializeMapView() {
     .attr("font-size", "24px")
     .attr("fill", "#74b9ff")
     .text("Spatial Map View - Coming Soon");
-  
-  svg.append("text")
-    .attr("x", width/2)
-    .attr("y", height/2 + 30)
-    .attr("text-anchor", "middle")
-    .attr("font-size", "16px")
-    .attr("fill", "#999")
-    .text("Geographic/conceptual mapping of musical influences");
 }
 
-// Helper functions for enhanced interactions
 function highlightConnectedNodes(selectedNode) {
   const connectedNodeIds = new Set();
   
@@ -412,7 +183,13 @@ function setupControls() {
   UIControls.setupControls({
     onViewModeChange: (newView) => {
       currentView = newView;
-      initializeVisualization();
+      ViewManager.handleViewModeChange(newView, {
+        graph,
+        albums,
+        connectionVisibility,
+        svg: d3.select("#music-map"),
+        tooltip: d3.select("#tooltip")
+      });
     },
     onSearchChange: (searchTerm) => {
       window.searchTerm = searchTerm;
