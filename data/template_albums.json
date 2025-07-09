@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Example Album",
+    "artist": "Example Artist",
+    "year": 2023,
+    "core_drive": "Description of primary energy/philosophy driving the album",
+    "structural_tension": "Description of internal dynamics and creative tensions",
+    "emotional_output": "Description of emotional states and effects produced",
+    "environmental_context": "Description of musical landscape position and influences",
+    "subsystem_role": "Description of functional role in the Music Machine",
+    "metadata_tags": [
+      "example_tag_1",
+      "example_tag_2",
+      "example_tag_3"
+    ]
+  }
+]
