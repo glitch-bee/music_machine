@@ -53,7 +53,7 @@ async function loadAlbumData() {
 // Initialize visualization with loaded data
 function initializeVisualization() {
   // Convert albums to graph format
-  graph = GraphConverter.convertAlbumsToGraph(albums);
+  graph = convertAlbumsToGraph(albums);
   
   // Reset filters
   filteredNodes = [...graph.nodes];
@@ -68,6 +68,242 @@ function initializeVisualization() {
   } else if (currentView === 'map') {
     initializeMapView();
   }
+}
+
+// Machine Wing Classification System
+function classifyAlbumWing(album) {
+  const role = album.subsystem_role.toLowerCase();
+  const tags = album.metadata_tags.map(tag => tag.toLowerCase());
+  const drive = album.core_drive.toLowerCase();
+  
+  // Wing 1: Atmospheric Processing (Ambient, Post-Rock, Atmospheric)
+  if (role.includes('space') || role.includes('atmospheric') || role.includes('ambient') || 
+      role.includes('ascent') || role.includes('beauty') || role.includes('observation') ||
+      tags.some(tag => tag.includes('deep_space') || tag.includes('ambient') || 
+                       tag.includes('atmospheric') || tag.includes('post_rock') ||
+                       tag.includes('beauty') || tag.includes('ascent'))) {
+    return {
+      id: 'atmospheric',
+      name: 'Atmospheric Processing Wing',
+      color: '#74b9ff', // Light blue
+      strokeColor: '#0984e3'
+    };
+  }
+  
+  // Wing 2: Propulsion Systems (Engines, Drives, Rhythm)
+  if (role.includes('engine') || role.includes('drive') || role.includes('sync') ||
+      role.includes('propulsion') || role.includes('core') ||
+      tags.some(tag => tag.includes('engine') || tag.includes('drive') || 
+                       tag.includes('sync') || tag.includes('propulsion') ||
+                       tag.includes('structural_urgency'))) {
+    return {
+      id: 'propulsion',
+      name: 'Propulsion Systems Wing',
+      color: '#fd79a8', // Pink
+      strokeColor: '#e84393'
+    };
+  }
+  
+  // Wing 3: Memory & Storage (Buffers, Recall, Archives)
+  if (role.includes('buffer') || role.includes('memory') || role.includes('storage') ||
+      role.includes('archive') || role.includes('recall') ||
+      tags.some(tag => tag.includes('buffer') || tag.includes('memory') || 
+                       tag.includes('recall') || tag.includes('compressed') ||
+                       tag.includes('analog'))) {
+    return {
+      id: 'memory',
+      name: 'Memory & Storage Wing',
+      color: '#fdcb6e', // Gold
+      strokeColor: '#e17055'
+    };
+  }
+  
+  // Wing 4: Processing & Analysis (Computational, Resonance, Analysis)
+  if (role.includes('processor') || role.includes('resonance') || role.includes('fractal') ||
+      role.includes('analysis') || role.includes('computational') ||
+      tags.some(tag => tag.includes('processor') || tag.includes('resonance') || 
+                       tag.includes('fractal') || tag.includes('precision') ||
+                       tag.includes('calibrated'))) {
+    return {
+      id: 'processing',
+      name: 'Processing & Analysis Wing',
+      color: '#00b894', // Green
+      strokeColor: '#00a085'
+    };
+  }
+  
+  // Wing 5: Testing & Experimental (Stress, Debug, Experimental)
+  if (role.includes('stress') || role.includes('test') || role.includes('debug') ||
+      role.includes('experimental') || role.includes('protocol') ||
+      tags.some(tag => tag.includes('stress') || tag.includes('debug') || 
+                       tag.includes('glitch') || tag.includes('collision') ||
+                       tag.includes('modular_chaos'))) {
+    return {
+      id: 'testing',
+      name: 'Testing & Experimental Wing',
+      color: '#a29bfe', // Purple
+      strokeColor: '#6c5ce7'
+    };
+  }
+  
+  // Default: Core Systems
+  return {
+    id: 'core',
+    name: 'Core Systems Wing',
+    color: '#ddd', // Gray
+    strokeColor: '#999'
+  };
+}
+
+function convertAlbumsToGraph(albums) {
+  const nodes = [];
+  const links = [];
+  
+  // Create wing hub nodes
+  const wings = {};
+  
+  // Create album nodes and classify by wing
+  albums.forEach(album => {
+    const wing = classifyAlbumWing(album);
+    
+    // Create wing hub if it doesn't exist
+    if (!wings[wing.id]) {
+      wings[wing.id] = wing;
+      nodes.push({
+        id: `${wing.name}`,
+        group: "wing_hub",
+        size: 32,
+        type: "wing_hub",
+        wing: wing,
+        data: { name: wing.name, albums: [] }
+      });
+    }
+    
+    // Add album to wing data
+    const wingHub = nodes.find(n => n.id === wing.name);
+    wingHub.data.albums.push(album);
+    
+    // Create album node
+    nodes.push({
+      id: `${album.title}`,
+      group: "album",
+      size: 20,
+      type: "album",
+      wing: wing,
+      data: album
+    });
+    
+    // Create artist nodes if they don't exist
+    const artistExists = nodes.find(n => n.id === album.artist && n.group === "artist");
+    if (!artistExists) {
+      nodes.push({
+        id: album.artist,
+        group: "artist",
+        size: 16,
+        type: "artist",
+        wing: wing, // Artist inherits wing from their albums
+        data: { name: album.artist }
+      });
+    }
+    
+    // Connect album to its wing hub
+    links.push({
+      source: `${wing.name}`,
+      target: `${album.title}`,
+      type: "wing_connection"
+    });
+    
+    // Connect album to artist
+    links.push({
+      source: album.artist,
+      target: `${album.title}`,
+      type: "creates"
+    });
+  });
+  
+  // Create connections between albums
+  for (let i = 0; i < albums.length; i++) {
+    for (let j = i + 1; j < albums.length; j++) {
+      const album1 = albums[i];
+      const album2 = albums[j];
+      const wing1 = classifyAlbumWing(album1);
+      const wing2 = classifyAlbumWing(album2);
+      
+      // Intra-wing connections (within same wing)
+      if (wing1.id === wing2.id) {
+        // Connect albums with overlapping metadata tags
+        const commonTags = album1.metadata_tags.filter(tag => 
+          album2.metadata_tags.includes(tag)
+        );
+        if (commonTags.length >= 1) {
+          links.push({
+            source: `${album1.title}`,
+            target: `${album2.title}`,
+            type: "intra_wing_connection"
+          });
+        }
+      }
+      
+      // Inter-wing connections (between different wings)
+      else {
+        // Only connect if they share strong thematic connections
+        const commonTags = album1.metadata_tags.filter(tag => 
+          album2.metadata_tags.includes(tag)
+        );
+        if (commonTags.length >= 2) {
+          links.push({
+            source: `${album1.title}`,
+            target: `${album2.title}`,
+            type: "inter_wing_connection"
+          });
+        }
+        
+        // Connect complementary wing functions
+        const wingConnections = {
+          'atmospheric': ['processing', 'memory'],
+          'propulsion': ['testing', 'memory'],
+          'memory': ['atmospheric', 'propulsion'],
+          'processing': ['atmospheric', 'testing'],
+          'testing': ['propulsion', 'processing']
+        };
+        
+        if (wingConnections[wing1.id]?.includes(wing2.id)) {
+          // Only connect if albums have related functions
+          const role1 = album1.subsystem_role.toLowerCase();
+          const role2 = album2.subsystem_role.toLowerCase();
+          
+          if ((role1.includes('engine') && role2.includes('buffer')) ||
+              (role1.includes('processor') && role2.includes('observation')) ||
+              (role1.includes('stress') && role2.includes('engine'))) {
+            links.push({
+              source: `${album1.title}`,
+              target: `${album2.title}`,
+              type: "functional_bridge"
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  // Create hub-to-hub connections for major system bridges
+  const hubConnections = [
+    ['Atmospheric Processing Wing', 'Processing & Analysis Wing'],
+    ['Propulsion Systems Wing', 'Testing & Experimental Wing'],
+    ['Memory & Storage Wing', 'Atmospheric Processing Wing']
+  ];
+  
+  hubConnections.forEach(([hub1, hub2]) => {
+    if (nodes.find(n => n.id === hub1) && nodes.find(n => n.id === hub2)) {
+      links.push({
+        source: hub1,
+        target: hub2,
+        type: "hub_bridge"
+      });
+    }
+  });
+  
+  return { nodes, links };
 }
 
 function initializeNetworkView() {
@@ -609,7 +845,7 @@ function calculateMachineStats() {
   const totalConnections = graph ? graph.links.length : 0;
   
   albums.forEach(album => {
-    const wing = WingClassifier.classifyAlbumWing(album);
+    const wing = classifyAlbumWing(album);
     wingCounts[wing.name] = (wingCounts[wing.name] || 0) + 1;
   });
   
@@ -628,7 +864,7 @@ function calculateMachineStats() {
 function createWingLegend() {
   const wings = {};
   albums.forEach(album => {
-    const wing = WingClassifier.classifyAlbumWing(album);
+    const wing = classifyAlbumWing(album);
     wings[wing.id] = wings[wing.id] || { ...wing, count: 0 };
     wings[wing.id].count++;
   });
