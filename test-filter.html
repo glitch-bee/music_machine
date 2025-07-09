@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Wing Filter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .controls { margin: 20px 0; }
+        select { padding: 5px; margin: 5px; }
+        #output { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Test Wing Filter</h1>
+    
+    <div class="controls">
+        <label>Wing Filter:</label>
+        <select id="wingFilter">
+            <option value="all">All Wings</option>
+            <option value="atmospheric">Atmospheric</option>
+            <option value="propulsion">Propulsion</option>
+            <option value="memory">Memory</option>
+            <option value="processing">Processing</option>
+            <option value="testing">Testing</option>
+        </select>
+    </div>
+    
+    <div id="output">No selection made</div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="js/utils/wing-classifier.js"></script>
+    <script src="js/data/data-loader.js"></script>
+    <script src="js/data/graph-converter.js"></script>
+    <script src="js/ui/controls.js"></script>
+    <script>
+        console.log('Testing wing filter...');
+        
+        // Test the wing filter change
+        d3.select("#wingFilter").on("change", function() {
+            const selectedWing = this.value;
+            console.log('Selected wing:', selectedWing);
+            document.getElementById('output').innerHTML = `Selected wing: ${selectedWing}`;
+            
+            // Test if we can access the controls
+            if (window.UIControls) {
+                console.log('UIControls available');
+                document.getElementById('output').innerHTML += '<br>UIControls is available';
+            } else {
+                console.log('UIControls not available');
+                document.getElementById('output').innerHTML += '<br>UIControls is NOT available';
+            }
+        });
+        
+        // Test loading some data
+        setTimeout(async () => {
+            try {
+                if (window.DataLoader) {
+                    console.log('Testing DataLoader...');
+                    const albums = await DataLoader.loadAlbumData();
+                    console.log('Loaded albums:', albums.length);
+                    document.getElementById('output').innerHTML += `<br>Loaded ${albums.length} albums`;
+                    
+                    if (window.GraphConverter) {
+                        const graph = GraphConverter.convertAlbumsToGraph(albums);
+                        console.log('Converted to graph:', graph.nodes.length, 'nodes,', graph.links.length, 'links');
+                        document.getElementById('output').innerHTML += `<br>Graph: ${graph.nodes.length} nodes, ${graph.links.length} links`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('output').innerHTML += `<br>Error: ${error.message}`;
+            }
+        }, 500);
+    </script>
+</body>
+</html>

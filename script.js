@@ -30,7 +30,7 @@ async function loadAlbumData() {
     
     // Initialize the visualization
     initializeVisualization();
-    setupControls();
+    setupUIControls();
     VisualizationHelpers.updateMachineStats(albums, graph);
     VisualizationHelpers.createWingLegend(albums);
   } catch (error) {
@@ -178,7 +178,7 @@ function resetZoom() {
 }
 
 // Control system setup
-function setupControls() {
+function setupUIControls() {
   // Set up UI controls with callbacks
   UIControls.setupControls({
     onViewModeChange: (newView) => {
@@ -191,12 +191,12 @@ function setupControls() {
         tooltip: d3.select("#tooltip")
       });
     },
-    onSearchChange: (searchTerm) => {
-      window.searchTerm = searchTerm;
+    onSearchChange: (newSearchTerm) => {
+      searchTerm = newSearchTerm;
       applyFilters();
     },
-    onWingFilterChange: (selectedWing) => {
-      window.selectedWing = selectedWing;
+    onWingFilterChange: (newSelectedWing) => {
+      selectedWing = newSelectedWing;
       applyFilters();
     },
     onConnectionToggle: (types, isVisible) => {
@@ -220,21 +220,35 @@ function applyFilters() {
   filteredNodes = filtered.filteredNodes;
   filteredLinks = filtered.filteredLinks;
   
-  updateVisualization();
+  // Update the current view with filtered data
+  updateCurrentView();
 }
 
-function updateVisualization() {
-  if (!svg || currentView !== 'network') return;
+function updateCurrentView() {
+  if (!graph) return;
   
-  // Use UIControls to update visualization
-  UIControls.updateVisualization(svg, filteredNodes, filteredLinks, connectionVisibility, simulation);
+  // Create filtered graph data
+  const filteredData = {
+    nodes: filteredNodes,
+    links: filteredLinks
+  };
+  
+  // Update the current view with filtered data
+  ViewManager.handleViewModeChange(currentView, {
+    graph: graph,
+    filteredData: filteredData,
+    albums: albums,
+    connectionVisibility: connectionVisibility,
+    svg: d3.select("#music-map"),
+    tooltip: d3.select("#tooltip")
+  });
 }
 
 function updateConnectionVisibility() {
-  if (!svg) return;
+  if (!graph) return;
   
-  // Use UIControls to update connection visibility
-  UIControls.updateConnectionVisibility(svg, connectionVisibility);
+  // Update the current view with new connection visibility
+  updateCurrentView();
 }
 
 // Start loading data when page loads

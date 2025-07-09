@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Wing Filter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Debug Wing Filter</h1>
+    <div id="debug-output"></div>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        console.log('Starting debug...');
+        
+        // Test wing filter dropdown
+        const wingFilter = document.createElement('select');
+        wingFilter.innerHTML = `
+            <option value="all">All Wings</option>
+            <option value="atmospheric">Atmospheric</option>
+            <option value="propulsion">Propulsion</option>
+            <option value="memory">Memory</option>
+            <option value="processing">Processing</option>
+            <option value="testing">Testing</option>
+        `;
+        
+        wingFilter.addEventListener('change', function() {
+            console.log('Wing filter changed to:', this.value);
+            document.getElementById('debug-output').innerHTML += 
+                `<div class="success">Wing filter changed to: ${this.value}</div>`;
+        });
+        
+        document.body.appendChild(wingFilter);
+        
+        // Test if the modules are loading
+        const modules = [
+            'WingClassifier',
+            'DataLoader', 
+            'GraphConverter',
+            'UIControls',
+            'VisualizationHelpers',
+            'NetworkView',
+            'ViewManager'
+        ];
+        
+        const debugOutput = document.getElementById('debug-output');
+        
+        setTimeout(() => {
+            modules.forEach(module => {
+                if (window[module]) {
+                    debugOutput.innerHTML += `<div class="success">✓ ${module} loaded</div>`;
+                } else {
+                    debugOutput.innerHTML += `<div class="error">✗ ${module} not found</div>`;
+                }
+            });
+        }, 1000);
+    </script>
+</body>
+</html>

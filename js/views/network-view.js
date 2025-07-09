@@ -32,7 +32,7 @@ function highlightConnectedNodes(node) {
  * @param {Object} context - Context object with data and elements
  */
 function initialize(context = {}) {
-  const { graph, connectionVisibility, svg, tooltip } = context;
+  const { graph, connectionVisibility, svg, tooltip, filteredData } = context;
   
   if (!graph) {
     console.error('Network view requires graph data');
@@ -43,6 +43,9 @@ function initialize(context = {}) {
   networkSvg = svg;
   networkTooltip = tooltip;
   currentGraph = graph;
+  
+  // Use filtered data if provided, otherwise use full graph
+  const displayGraph = filteredData || graph;
   
   const width = 900, height = 600;
   
@@ -67,12 +70,12 @@ function initialize(context = {}) {
   networkTooltip = networkTooltip || VisualizationHelpers.initializeTooltip();
   
   // Set up force simulation
-  setupForceSimulation(graph, width, height);
+  setupForceSimulation(displayGraph, width, height);
   
   // Draw visualization elements
-  drawLinks(mainGroup, graph, connectionVisibility);
-  drawNodes(mainGroup, graph);
-  drawLabels(mainGroup, graph);
+  drawLinks(mainGroup, displayGraph, connectionVisibility);
+  drawNodes(mainGroup, displayGraph);
+  drawLabels(mainGroup, displayGraph);
   
   // Start simulation
   startSimulation();
@@ -196,7 +199,7 @@ function drawLinks(mainGroup, graph, connectionVisibility) {
         if (d.type === "functional_bridge") return 0.5;
         return 0.3;
       })
-      .style("display", d => connectionVisibility[d.type] ? "block" : "none");
+      .style("display", d => connectionVisibility && connectionVisibility[d.type] ? "block" : "none");
 }
 
 /**
