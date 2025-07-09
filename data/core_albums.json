@@ -12,7 +12,7 @@
       "coolant",
       "modular",
       "contemplative",
-      "deep_space_module",
+      "atmospheric",
       "harmonic_mapping"
     ]
   },
@@ -61,8 +61,8 @@
     "subsystem_role": "Fractal Resonance Engine / Beauty Seeker Unit",
     "metadata_tags": [
       "oscillator",
-      "engineered_ascension",
-      "beauty_under_stress",
+      "synthetic",
+      "contemplative",
       "resonant",
       "fractal"
     ]
@@ -77,12 +77,11 @@
     "environmental_context": "PG.Lost, Caspian, Russian Circles. Heavier, more tactile, more human.",
     "subsystem_role": "Ascent Engine / Load-Bearing Atmospheric Uplift",
     "metadata_tags": [
-      "ascent",
-      "load_bearing",
+      "oscillator",
       "atmospheric",
-      "resistance",
+      "resonant",
       "uplifting",
-      "structured"
+      "load_bearing"
     ]
   }
 ]

@@ -10,12 +10,48 @@
  * @param {Array} albums - Array of album objects
  * @returns {Object} Graph object with nodes and links arrays
  */
-function convertAlbumsToGraph(albums) {
+async function convertAlbumsToGraph(albums) {
   const nodes = [];
   const links = [];
   
+  // Track all tags used by albums
+  const allTags = new Set();
+  const coreTagNames = new Set();
+  
+  // Load core tags to identify which are core vs unique
+  try {
+    const coreTags = await loadCoreTags();
+    coreTags.forEach(tag => coreTagNames.add(tag.name));
+  } catch (error) {
+    console.warn('Could not load core tags, treating all as unique:', error);
+  }
+  
   // Create wing hub nodes
   const wings = {};
+  
+  // First pass: collect all tags
+  albums.forEach(album => {
+    if (album.metadata_tags) {
+      album.metadata_tags.forEach(tag => allTags.add(tag));
+    }
+  });
+  
+  // Create tag nodes
+  allTags.forEach(tagName => {
+    const isCore = coreTagNames.has(tagName);
+    nodes.push({
+      id: `tag_${tagName}`,
+      group: "tag",
+      size: isCore ? 12 : 6,
+      type: "tag",
+      isCore: isCore,
+      data: { 
+        name: tagName,
+        isCore: isCore,
+        albums: [] // Will be populated later
+      }
+    });
+  });
   
   // Create album nodes and classify by wing
   albums.forEach(album => {
@@ -39,14 +75,26 @@ function convertAlbumsToGraph(albums) {
     wingHub.data.albums.push(album);
     
     // Create album node
-    nodes.push({
+    const albumNode = {
       id: `${album.title}`,
       group: "album",
       size: 20,
       type: "album",
       wing: wing,
-      data: album
-    });
+      data: album,
+      tags: album.metadata_tags || []
+    };
+    nodes.push(albumNode);
+    
+    // Add album to tag nodes' data
+    if (album.metadata_tags) {
+      album.metadata_tags.forEach(tagName => {
+        const tagNode = nodes.find(n => n.id === `tag_${tagName}`);
+        if (tagNode) {
+          tagNode.data.albums.push(album);
+        }
+      });
+    }
     
     // Create artist nodes if they don't exist
     const artistExists = nodes.find(n => n.id === album.artist && n.group === "artist");
@@ -74,6 +122,17 @@ function convertAlbumsToGraph(albums) {
       target: `${album.title}`,
       type: "creates"
     });
+    
+    // Connect album to its tags
+    if (album.metadata_tags) {
+      album.metadata_tags.forEach(tagName => {
+        links.push({
+          source: `${album.title}`,
+          target: `tag_${tagName}`,
+          type: "tag_connection"
+        });
+      });
+    }
   });
   
   // Create connections between albums
@@ -159,6 +218,21 @@ function convertAlbumsToGraph(albums) {
   });
   
   return { nodes, links };
+}
+
+/**
+ * Load core tags from JSON file
+ * @returns {Promise<Array>} Array of core tag objects
+ */
+async function loadCoreTags() {
+  try {
+    const response = await fetch('data/core_tags.json');
+    const coreTags = await response.json();
+    return coreTags;
+  } catch (error) {
+    console.warn('Could not load core tags:', error);
+    return [];
+  }
 }
 
 /**

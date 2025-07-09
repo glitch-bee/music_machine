@@ -130,6 +130,7 @@ function setupForceSimulation(graph, width, height) {
     .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => {
       if (d.type === "wing_connection") return 80;
       if (d.type === "creates") return 60;
+      if (d.type === "tag_connection") return 40; // Short connections for clustering
       if (d.type === "intra_wing_connection") return 100;
       if (d.type === "inter_wing_connection") return 200;
       if (d.type === "functional_bridge") return 180;
@@ -138,6 +139,7 @@ function setupForceSimulation(graph, width, height) {
     }).strength(d => {
       if (d.type === "wing_connection") return 0.8;
       if (d.type === "creates") return 0.9;
+      if (d.type === "tag_connection") return 0.7; // Strong pull for clustering
       if (d.type === "intra_wing_connection") return 0.6;
       if (d.type === "inter_wing_connection") return 0.3;
       if (d.type === "functional_bridge") return 0.4;
@@ -148,10 +150,25 @@ function setupForceSimulation(graph, width, height) {
       if (d.group === "wing_hub") return -800;
       if (d.group === "album") return -200;
       if (d.group === "artist") return -150;
+      if (d.group === "tag") return d.isCore ? -300 : -100; // Core tags have stronger charge
       return -200;
     }))
     .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("collision", d3.forceCollide().radius(d => d.size + 10));
+    .force("collision", d3.forceCollide().radius(d => d.size + 10))
+    // Add clustering force to spread core tags around the space
+    .force("cluster", function(alpha) {
+      const coreTagNodes = graph.nodes.filter(n => n.group === "tag" && n.isCore);
+      const radius = Math.min(width, height) * 0.3;
+      
+      coreTagNodes.forEach((node, i) => {
+        const angle = (i / coreTagNodes.length) * 2 * Math.PI;
+        const targetX = width / 2 + Math.cos(angle) * radius;
+        const targetY = height / 2 + Math.sin(angle) * radius;
+        
+        node.vx += (targetX - node.x) * alpha * 0.1;
+        node.vy += (targetY - node.y) * alpha * 0.1;
+      });
+    });
 }
 
 /**
@@ -169,6 +186,7 @@ function drawLinks(mainGroup, graph, connectionVisibility) {
       .attr("stroke", d => {
         if (d.type === "wing_connection") return "#555";
         if (d.type === "creates") return "#74b9ff";
+        if (d.type === "tag_connection") return "#e17055"; // Orange for tag connections
         if (d.type === "intra_wing_connection") return "#00b894";
         if (d.type === "inter_wing_connection") return "#fd79a8";
         if (d.type === "functional_bridge") return "#fdcb6e";
@@ -178,12 +196,14 @@ function drawLinks(mainGroup, graph, connectionVisibility) {
       .attr("stroke-width", d => {
         if (d.type === "wing_connection") return 3;
         if (d.type === "creates") return 2;
+        if (d.type === "tag_connection") return 1.5; // Thinner for tag connections
         if (d.type === "hub_bridge") return 4;
         return 1.5;
       })
       .attr("stroke-dasharray", d => {
         if (d.type === "wing_connection") return "0";
         if (d.type === "creates") return "0";
+        if (d.type === "tag_connection") return "3,2"; // Subtle dash for tags
         if (d.type === "intra_wing_connection") return "5,5";
         if (d.type === "inter_wing_connection") return "10,5";
         if (d.type === "functional_bridge") return "8,4";
@@ -193,6 +213,7 @@ function drawLinks(mainGroup, graph, connectionVisibility) {
       .attr("opacity", d => {
         if (d.type === "wing_connection") return 0.7;
         if (d.type === "creates") return 0.8;
+        if (d.type === "tag_connection") return 0.6; // Moderate opacity for tag connections
         if (d.type === "hub_bridge") return 0.9;
         if (d.type === "intra_wing_connection") return 0.6;
         if (d.type === "inter_wing_connection") return 0.4;
@@ -212,23 +233,33 @@ function drawNodes(mainGroup, graph) {
     .selectAll("circle")
     .data(graph.nodes)
     .join("circle")
-      .attr("class", "node")
+      .attr("class", d => {
+        let classes = "node";
+        if (d.group === "tag") {
+          classes += " tag";
+          classes += d.isCore ? " core" : " unique";
+        }
+        return classes;
+      })
       .attr("r", d => d.size)
       .attr("fill", d => {
         if (d.group === "wing_hub") return d.wing.color;
         if (d.group === "album") return d.wing.color;
         if (d.group === "artist") return d.wing.color;
+        if (d.group === "tag") return d.isCore ? "#e17055" : "#636e72"; // Core tags orange, unique tags gray
         return "#ddd";
       })
       .attr("stroke", d => {
         if (d.group === "wing_hub") return d.wing.strokeColor;
         if (d.group === "album") return d.wing.strokeColor;
         if (d.group === "artist") return d.wing.strokeColor;
+        if (d.group === "tag") return d.isCore ? "#d63031" : "#2d3436"; // Darker stroke for tags
         return "#999";
       })
       .attr("stroke-width", d => {
         if (d.group === "wing_hub") return 4;
         if (d.group === "album") return 2;
+        if (d.group === "tag") return d.isCore ? 2 : 1; // Core tags have thicker stroke
         return 1.5;
       })
       .on("mouseover", function(e, d) {
@@ -264,9 +295,18 @@ function drawLabels(mainGroup, graph) {
     .join("text")
       .attr("dy", 4)
       .attr("text-anchor", "middle")
-      .attr("font-size", 12)
-      .attr("fill", "#fafafa")
-      .text(d => d.id);
+      .attr("font-size", d => {
+        if (d.group === "tag") return d.isCore ? 10 : 8; // Smaller font for tags
+        return 12;
+      })
+      .attr("fill", d => {
+        if (d.group === "tag") return d.isCore ? "#e17055" : "#636e72"; // Match tag node colors
+        return "#fafafa";
+      })
+      .text(d => {
+        if (d.group === "tag") return d.data.name; // Show tag name
+        return d.id;
+      });
 }
 
 /**

@@ -13,7 +13,8 @@ let connectionVisibility = {
   inter_wing_connection: true,
   functional_bridge: true,
   hub_bridge: true,
-  creates: true
+  creates: true,
+  tag_connection: true
 };
 
 // Search and filter state
@@ -29,7 +30,7 @@ async function loadAlbumData() {
     albums = await DataLoader.loadAlbumData();
     
     // Initialize the visualization
-    initializeVisualization();
+    await initializeVisualization();
     setupUIControls();
     VisualizationHelpers.updateMachineStats(albums, graph);
     VisualizationHelpers.createWingLegend(albums);
@@ -37,14 +38,14 @@ async function loadAlbumData() {
     console.error('Error in loadAlbumData:', error);
     // Fallback to empty array if loading fails
     albums = [];
-    initializeVisualization();
+    await initializeVisualization();
   }
 }
 
 // Initialize visualization with loaded data
-function initializeVisualization() {
+async function initializeVisualization() {
   // Convert albums to graph format
-  graph = GraphConverter.convertAlbumsToGraph(albums);
+  graph = await GraphConverter.convertAlbumsToGraph(albums);
   
   // Reset filters
   filteredNodes = [...graph.nodes];

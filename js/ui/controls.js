@@ -79,6 +79,15 @@ function setupControls(callbacks = {}) {
     }
   });
   
+  d3.select("#toggleTagConnections").on("click", function() {
+    const types = ['tag_connection'];
+    const isActive = this.classList.contains('active');
+    toggleConnectionType(types, this);
+    if (onConnectionToggle) {
+      onConnectionToggle(types, !isActive);
+    }
+  });
+  
   // Reset view button
   d3.select("#resetHighlight").on("click", function() {
     if (onResetView) {
@@ -244,7 +253,8 @@ function getControlStates() {
       wing: d3.select("#toggleWingConnections").classed("active"),
       intra: d3.select("#toggleIntraConnections").classed("active"),
       inter: d3.select("#toggleInterConnections").classed("active"),
-      bridges: d3.select("#toggleBridges").classed("active")
+      bridges: d3.select("#toggleBridges").classed("active"),
+      tags: d3.select("#toggleTagConnections").classed("active")
     }
   };
 }
@@ -269,6 +279,7 @@ function setControlStates(states) {
     d3.select("#toggleIntraConnections").classed("active", conn.intra);
     d3.select("#toggleInterConnections").classed("active", conn.inter);
     d3.select("#toggleBridges").classed("active", conn.bridges);
+    d3.select("#toggleTagConnections").classed("active", conn.tags);
   }
 }
 
