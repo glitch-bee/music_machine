@@ -1,0 +1,293 @@
+[
+    {
+      "name": "ignition",
+      "category": "function",
+      "description": "Initiates or catalyzes energy flow in the system."
+    },
+    {
+      "name": "stabilizer",
+      "category": "function",
+      "description": "Provides grounding or balance; prevents system drift."
+    },
+    {
+      "name": "feedback_loop",
+      "category": "function",
+      "description": "Creates self-referential cycles, echoes, or recursive energy."
+    },
+    {
+      "name": "oscillator",
+      "category": "function",
+      "description": "Generates rhythmic or repeating patterns."
+    },
+    {
+      "name": "coolant",
+      "category": "function",
+      "description": "Diffuses tension, reduces heat, calms the system."
+    },
+    {
+      "name": "memory_bank",
+      "category": "function",
+      "description": "Stores and preserves past states, memories, or motifs."
+    },
+    {
+      "name": "uplink",
+      "category": "function",
+      "description": "Connects modules to larger systems or higher processes."
+    },
+    {
+      "name": "gatekeeper",
+      "category": "function",
+      "description": "Controls flow, access, or transitions between states."
+    },
+    {
+      "name": "diagnostic",
+      "category": "function",
+      "description": "Examines or troubleshoots system processes."
+    },
+    {
+      "name": "buffer",
+      "category": "function",
+      "description": "Absorbs excess input, mediates between modules."
+    },
+    {
+      "name": "bridge",
+      "category": "function",
+      "description": "Links disparate elements, acts as connective tissue."
+    },
+    {
+      "name": "hub",
+      "category": "function",
+      "description": "Central node for data or energy exchange."
+    },
+    {
+      "name": "satellite",
+      "category": "environment",
+      "description": "Operates at the system's edge, supports or relays signals."
+    },
+    {
+      "name": "node",
+      "category": "environment",
+      "description": "A connection point within the system's network."
+    },
+    {
+      "name": "kinetic",
+      "category": "energy",
+      "description": "Drives movement, propulsion, or action."
+    },
+    {
+      "name": "static",
+      "category": "energy",
+      "description": "Embodies stasis, stillness, or suspended energy."
+    },
+    {
+      "name": "turbulent",
+      "category": "energy",
+      "description": "Characterized by instability, flux, or chaos."
+    },
+    {
+      "name": "resonant",
+      "category": "energy",
+      "description": "Amplifies or sustains vibration throughout the system."
+    },
+    {
+      "name": "pulse",
+      "category": "energy",
+      "description": "Produces regular, rhythmic impulses."
+    },
+    {
+      "name": "sustained",
+      "category": "energy",
+      "description": "Maintains continuous energy or tone."
+    },
+    {
+      "name": "euphoric",
+      "category": "emotion",
+      "description": "Generates feelings of joy, elation, or bliss."
+    },
+    {
+      "name": "melancholic",
+      "category": "emotion",
+      "description": "Evokes sadness, longing, or reflective moods."
+    },
+    {
+      "name": "contemplative",
+      "category": "emotion",
+      "description": "Promotes introspection, thought, or meditation."
+    },
+    {
+      "name": "anxious",
+      "category": "emotion",
+      "description": "Induces tension, urgency, or unease."
+    },
+    {
+      "name": "uplifting",
+      "category": "emotion",
+      "description": "Inspires hope, optimism, or lightness."
+    },
+    {
+      "name": "hypnotic",
+      "category": "emotion",
+      "description": "Creates trance-like, immersive, or mesmerizing states."
+    },
+    {
+      "name": "nostalgic",
+      "category": "emotion",
+      "description": "Recalls or reinterprets the past; evokes memory."
+    },
+    {
+      "name": "timeless",
+      "category": "temporal",
+      "description": "Unbound by specific era; feels eternal."
+    },
+    {
+      "name": "future_forward",
+      "category": "temporal",
+      "description": "Projects futuristic or forward-thinking aesthetics."
+    },
+    {
+      "name": "retro",
+      "category": "temporal",
+      "description": "Deliberately references past styles or eras."
+    },
+    {
+      "name": "looped",
+      "category": "temporal",
+      "description": "Cycles or repeats temporal patterns."
+    },
+    {
+      "name": "transient",
+      "category": "temporal",
+      "description": "Ephemeral, fleeting, or momentary."
+    },
+    {
+      "name": "minimal",
+      "category": "structure",
+      "description": "Reduces to essentials; emphasizes simplicity."
+    },
+    {
+      "name": "dense",
+      "category": "structure",
+      "description": "Tightly packed, multi-layered, or complex."
+    },
+    {
+      "name": "fragmented",
+      "category": "structure",
+      "description": "Broken, discontinuous, or non-linear."
+    },
+    {
+      "name": "modular",
+      "category": "structure",
+      "description": "Built from interchangeable, repeating units."
+    },
+    {
+      "name": "continuous",
+      "category": "structure",
+      "description": "Uninterrupted, smooth, or seamless in flow."
+    },
+    {
+      "name": "analog",
+      "category": "process",
+      "description": "Utilizes analog, physical, or organic processes."
+    },
+    {
+      "name": "digital",
+      "category": "process",
+      "description": "Employs digital, virtual, or computer-based methods."
+    },
+    {
+      "name": "organic",
+      "category": "process",
+      "description": "Grows or evolves naturally, without strict design."
+    },
+    {
+      "name": "synthetic",
+      "category": "process",
+      "description": "Constructed or manufactured from artificial means."
+    },
+    {
+      "name": "improvised",
+      "category": "process",
+      "description": "Created spontaneously, with minimal pre-planning."
+    },
+    {
+      "name": "algorithmic",
+      "category": "process",
+      "description": "Driven by algorithms, systems, or rules."
+    },
+    {
+      "name": "composed",
+      "category": "process",
+      "description": "Meticulously arranged or pre-designed."
+    },
+    {
+      "name": "sampled",
+      "category": "process",
+      "description": "Constructed from existing recorded materials."
+    },
+    {
+      "name": "core",
+      "category": "environment",
+      "description": "Central or essential within the system."
+    },
+    {
+      "name": "peripheral",
+      "category": "environment",
+      "description": "Operates on the edges or margins of the system."
+    },
+    {
+      "name": "crossroad",
+      "category": "environment",
+      "description": "Intersection of multiple pathways or genres."
+    },
+    {
+      "name": "boot_sequence",
+      "category": "system_phase",
+      "description": "Initiates a new cycle or phase in the machine."
+    },
+    {
+      "name": "debug_mode",
+      "category": "system_phase",
+      "description": "Engaged in troubleshooting, revision, or testing."
+    },
+    {
+      "name": "expansion",
+      "category": "system_phase",
+      "description": "Drives system growth or extends reach."
+    },
+    {
+      "name": "shutdown",
+      "category": "system_phase",
+      "description": "Closes, ends, or powers down the system."
+    },
+    {
+      "name": "maintenance_mode",
+      "category": "system_phase",
+      "description": "Focuses on upkeep, repair, or preservation."
+    },
+    {
+      "name": "foundational",
+      "category": "legacy",
+      "description": "Essential to the machine’s memory and operation."
+    },
+    {
+      "name": "innovator",
+      "category": "legacy",
+      "description": "Pioneered new approaches, techniques, or styles."
+    },
+    {
+      "name": "echo",
+      "category": "legacy",
+      "description": "Reverberates or reinterprets earlier work."
+    },
+    {
+      "name": "prototype",
+      "category": "legacy",
+      "description": "Early or experimental version influencing later forms."
+    },
+    {
+      "name": "mutation",
+      "category": "legacy",
+      "description": "Alters or transforms established forms."
+    }
+  ]
+  

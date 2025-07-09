@@ -9,10 +9,10 @@
     "environmental_context": "Adjacent to 65daysofstatic, Tycho, ambient-era Aphex Twin. Engineered for inner space.",
     "subsystem_role": "Deep Space Observation Module",
     "metadata_tags": [
+      "coolant",
+      "modular",
+      "contemplative",
       "deep_space_module",
-      "modulated_stillness",
-      "ambient_orbit",
-      "self_healing_loop",
       "harmonic_mapping"
     ]
   },
@@ -26,11 +26,11 @@
     "environmental_context": "Justice, MSTRKRFT, Haywyre. Lives near hybrid electro-rock with polished aggression.",
     "subsystem_role": "Drive Unit / Engine Sync Core",
     "metadata_tags": [
+      "ignition",
+      "synthetic",
+      "pulse",
       "engine_sync_core",
-      "synthetic_unison",
-      "high_compression_unit",
-      "adrenaline_module",
-      "structural_urgency"
+      "high_compression_unit"
     ]
   },
   {
@@ -43,11 +43,11 @@
     "environmental_context": "Yeah Yeah Yeahs, BANKS, Form. Lives in a cracked-gloss memory module.",
     "subsystem_role": "Analog Memory Buffer / Summer Pulse Module",
     "metadata_tags": [
-      "analog_buffer",
+      "analog",
+      "kinetic",
+      "nostalgic",
       "reckless_balance",
-      "compressed_recall",
-      "heatwave_functional",
-      "motion_capture"
+      "heatwave_functional"
     ]
   },
   {
@@ -60,11 +60,11 @@
     "environmental_context": "If These Trees Could Talk, God Is An Astronaut. Machine-borne elegance.",
     "subsystem_role": "Fractal Resonance Engine / Beauty Seeker Unit",
     "metadata_tags": [
-      "post_rock_precision",
-      "calibrated_awe",
+      "oscillator",
+      "engineered_ascension",
       "beauty_under_stress",
-      "resonant_collapse",
-      "engineered_ascension"
+      "resonant",
+      "fractal"
     ]
   },
   {
@@ -77,11 +77,12 @@
     "environmental_context": "PG.Lost, Caspian, Russian Circles. Heavier, more tactile, more human.",
     "subsystem_role": "Ascent Engine / Load-Bearing Atmospheric Uplift",
     "metadata_tags": [
-      "load_bearing_beauty",
-      "atmospheric_drive",
-      "resistance_as_motion",
-      "ascent_under_weight",
-      "structured_loft"
+      "ascent",
+      "load_bearing",
+      "atmospheric",
+      "resistance",
+      "uplifting",
+      "structured"
     ]
   }
 ]
