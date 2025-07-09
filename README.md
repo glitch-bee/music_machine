@@ -1,167 +1,142 @@
-# The Music Machine
+# Music Machine
 
-> *An ever-evolving visualization of music as interconnected machinery*
+An interactive visualization project that reimagines music albums as functional components in a vast, interconnected mechanical system. Rather than ranking or categorizing music traditionally, the Music Machine explores how albums function as specialized system modules with specific roles, connections, and purposes.
 
-## What Is This?
+## Core Concept
 
-The Music Machine is a living, breathing visualization project that reimagines music albums as functional components in a vast, interconnected system. Rather than ranking or categorizing music in traditional ways, this project explores how albums function as **system modules** - each with specific roles, connections, and purposes within a larger musical ecosystem.
+The Music Machine treats music albums as **mechanical modules** in a living, breathing system where:
+- Each album serves a specific functional purpose within the machine
+- Albums are interconnected through shared metadata tags and characteristics
+- The system grows organically as new albums are added
+- No component is considered more important than another - each has its role
 
-## Philosophy
+## Current Features
 
-This isn't a static catalog or a definitive ranking system. The Music Machine is:
+### 🔧 **Tag-Based Clustering System**
+Albums are analyzed through a **constrained metadata vocabulary** using:
+- **Core tags** (shared across multiple albums) that create natural clustering
+- **Unique tags** (album-specific) that add personality without isolation
+- **Force-directed visualization** where albums cluster around shared concepts
+- **57 carefully curated core tags** spanning function, energy, emotion, structure, and more
 
-- **Collaborative** - A story we're weaving together about how music works
-- **Ever-evolving** - Growing and changing as we discover new connections
-- **Imperfect by design** - Not a bible, but a living document of musical relationships
-- **Mechanically-minded** - Albums are engines, processors, memory banks, and sensors
+### 🎛️ **Multiple Viewing Modes**
+- **Network View**: Interactive force-directed graph showing album relationships
+- **Blueprint View**: Technical radial cluster layout resembling machine schematics
+- **Wing-Based Organization**: Albums automatically categorized into operational wings
 
-## How It Works
+### 🔍 **Interactive Exploration**
+- **Wing filtering** - Focus on specific parts of the machine
+- **Connection controls** - Toggle different relationship types
+- **Search functionality** - Find specific albums or artists
+- **Responsive tooltips** - Detailed information on hover
 
-### The Five Analytical Lenses
+## Five Analytical Lenses
 
-Each album is analyzed through five core perspectives:
+Each album is analyzed through five distinct perspectives:
 
-1. **Core Drive** - The primary energy or philosophy powering the album
-2. **Structural Tension** - The dynamics and forces holding the album together
-3. **Emotional Output** - The feelings and effects the album produces
-4. **Environmental Context** - The album's place in the broader musical landscape
-5. **Subsystem Role** - The album's functional role within the Music Machine
+1. **Core Drive** - Primary energy/philosophy powering the album
+2. **Structural Tension** - Dynamics and forces holding the album together
+3. **Emotional Output** - Feelings and effects the album produces
+4. **Environmental Context** - Album's place in the broader musical landscape
+5. **Subsystem Role** - Functional role within the Music Machine
 
-### Machine Wing Architecture
+## Wing Classifications
 
-Albums are automatically organized into specialized wings:
+Albums are automatically organized into specialized operational wings:
 
-- **🌌 Atmospheric Processing Wing** - Ambient, atmospheric, and spatial processing
-- **🚀 Propulsion Systems Wing** - Engines, drives, and rhythmic synchronization
-- **💾 Memory & Storage Wing** - Buffers, archives, and recall systems
-- **⚙️ Processing & Analysis Wing** - Computational processing and pattern analysis
-- **🧪 Testing & Experimental Wing** - Stress testing and experimental protocols
+- 🌌 **Atmospheric Processing Wing** - Ambient, spatial, environmental processing
+- 🚀 **Propulsion Systems Wing** - Engines, drives, rhythmic synchronization
+- 💾 **Memory & Storage Wing** - Buffers, archives, recall systems
+- ⚙️ **Processing & Analysis Wing** - Computational processing, pattern analysis
+- 🧪 **Testing & Experimental Wing** - Stress testing, experimental protocols
 
-### Connection Logic
+## Technical Architecture
 
-Albums connect through:
-- **Wing connections** - Direct relationships to their operational wing
-- **Intra-wing connections** - Shared functionality within the same wing
-- **Inter-wing connections** - Cross-wing collaboration and data sharing
-- **Functional bridges** - Purpose-built connections between complementary systems
-- **Hub bridges** - Major system connections between wing control centers
+### Modern Modular Design
+- **Clean separation of concerns** with specialized modules
+- **Data-driven visualization** using D3.js force simulations
+- **Scalable architecture** ready for hundreds of albums
+- **Responsive design** that works across devices
 
-## The Story We're Telling
+### Core Components
+- **DataLoader** - Handles album and tag data loading
+- **GraphConverter** - Transforms album data into network graphs
+- **ViewManager** - Orchestrates different visualization modes
+- **UIControls** - Manages user interactions and filtering
+- **WingClassifier** - Automatically categorizes albums into wings
 
-This project tells the story of music as a vast, interconnected machine where:
+## Current Dataset
 
-- Every album serves a specific function
-- No component is more important than another
-- Connections emerge naturally from shared characteristics
-- The system grows organically as new modules are added
-- Each addition changes the entire network
+The system currently includes **carefully analyzed albums** across multiple genres and eras, each tagged with:
+- **3-5 metadata tags** (mix of core and unique tags)
+- **Detailed analytical descriptions** across all five lenses
+- **Wing classification** based on functional role
+- **Rich contextual information** about musical relationships
 
-## Technical Implementation
+## Tag-Based Connections
 
-Built with:
-- **HTML/CSS/JavaScript** for the web interface
-- **D3.js** for force-directed graph visualization
-- **JSON data files** for modular album storage
-- **Dynamic loading** for easy expansion
+The heart of the system is the **metadata tag network**:
+- **Core tags** like "oscillator", "coolant", "feedback_loop" create natural clusters
+- **Shared tags** between albums create meaningful connections
+- **Force simulation** pulls albums toward their shared concepts
+- **Visual hierarchy** distinguishes core tags from unique descriptors
 
-## Data Structure
+## Installation & Usage
 
-Albums are stored as JSON objects with rich metadata:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/music_machine.git
+   cd music_machine
+   ```
 
-```json
-{
-  "title": "Album Title",
-  "artist": "Artist Name",
-  "year": 2023,
-  "core_drive": "What drives this album?",
-  "structural_tension": "What holds it together?",
-  "emotional_output": "What does it make you feel?",
-  "environmental_context": "Where does it fit in music history?",
-  "subsystem_role": "What job does it do in the machine?",
-  "metadata_tags": ["functional", "descriptive", "tags"]
-}
-```
+2. **Start a local server**
+   ```bash
+   python -m http.server 8000
+   # or
+   npx http-server
+   ```
 
-## Contributing to the Machine
+3. **Open in browser**
+   Navigate to `http://localhost:8000`
 
-This is a collaborative project. You can contribute by:
+4. **Explore the machine**
+   - Use the view selector to switch between visualization modes
+   - Try wing filtering to focus on specific machine components
+   - Toggle connection types to see different relationship layers
+   - Search for specific albums or artists
 
-1. **Adding new albums** - Follow the data structure and analytical approach
-2. **Refining connections** - Suggest new ways albums should connect
-3. **Expanding wings** - Propose new functional wings or categories
-4. **Improving visualization** - Enhance the visual representation
-5. **Documenting discoveries** - Share insights about how the machine works
+## Future Vision
 
-## Current Status
+The long-term goal is to evolve this into a **3D constellation universe** where:
+- Albums exist as stars in an explorable musical cosmos
+- Shared tags create gravitational clusters and orbital relationships
+- Users can navigate through interconnected musical galaxies
+- The system supports thousands of albums in an immersive 3D space
 
-The Music Machine is in **active development**. Current features:
+Inspired by visualizations like the [UNESCO Intangible Cultural Heritage constellation](https://ich.unesco.org/dive/constellation/?language=en), the ultimate vision is a living, breathing musical universe where discovery happens through exploration rather than search.
 
-- ✅ Wing-based organization system
-- ✅ Multiple connection types
-- ✅ Dynamic album loading
-- ✅ Interactive visualization
-- ✅ Hover tooltips with detailed information
-- ✅ Drag-and-drop node manipulation
+## Contributing
 
-## Future Possibilities
+This project represents a unique approach to music analysis that combines:
+- **Technical visualization** with **poetic interpretation**
+- **Systematic analysis** with **organic discovery**
+- **Individual albums** with **collective relationships**
+- **Current functionality** with **future possibilities**
 
-The machine could evolve to include:
-- **Temporal connections** - How albums influence each other over time
-- **Genre clustering** - Specialized processing for different musical styles
-- **Influence mapping** - Direct inspiration and influence relationships
-- **Dynamic sizing** - Node sizes based on system impact or importance
-- **Audio integration** - Direct links to streaming platforms
-- **Collaborative editing** - Real-time multi-user album addition
+The system is designed to grow organically as new albums are analyzed and added to the machine.
 
-## Philosophy of Imperfection
+## Architecture Documentation
 
-This project embraces the idea that:
-
-- **Perfect categorization is impossible** - Music is too complex and personal
-- **Connections are subjective** - What connects two albums can be deeply personal
-- **The system will always be incomplete** - There's always more music to discover
-- **Change is good** - Albums can move between wings as we understand them better
-- **Community input is valuable** - Multiple perspectives make the machine richer
-
-## Getting Started
-
-1. Clone or download the project
-2. Open `index.html` in your browser
-3. Explore the current machine state
-4. Add new albums to the `data/` folder
-5. Watch the machine evolve
-
-## The Living Document
-
-This README, like the machine itself, is a living document. It will grow and change as the project evolves. The goal isn't to create a perfect system, but to build something that helps us think about music in new ways.
-
-The Music Machine is a collaborative story we're telling about how music works as a system. Every album added, every connection made, every refinement to the visualization is another paragraph in this ongoing narrative.
-
----
-
-*"The machine is not the destination, but the journey of understanding how music connects us all."*
-
-## Project Structure
-
-```
-music_machine/
-├── index.html                 # Main visualization page
-├── script.js                  # Visualization logic and data processing
-├── style.css                  # Visual styling
-├── README.md                  # This file
-├── MUSIC_MACHINE_SPEC.md      # Technical specification
-└── data/
-    ├── README.md              # Data folder overview
-    ├── QUICK_ADD_GUIDE.md     # Guide for adding new albums
-    ├── core_albums.json       # Foundational system modules
-    ├── experimental_albums.json  # Experimental and testing modules
-    └── template_albums.json   # Template for new additions
-```
+For developers interested in the technical implementation:
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Complete system architecture and design patterns
+- **[FILTERING_SYSTEM.md](FILTERING_SYSTEM.md)** - Deep dive into the filtering implementation
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Developer cheat sheet and debugging guide
+- **[FUTURE.md](FUTURE.md)** - Long-term vision and development roadmap
 
 ## License
 
-This project is open source and available under the MIT License. The goal is to create something that the community can build upon and evolve together.
+This project is a creative exploration of music visualization and analysis. See LICENSE for details.
 
 ---
 
-*Last updated: July 8, 2025*
+*The Music Machine is more than a visualization - it's a new way of understanding how music connects, functions, and evolves within a living system. Each album has its purpose, each connection has meaning, and the machine grows stronger with every
