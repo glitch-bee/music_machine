@@ -1,5 +1,26 @@
 // Music Machine Data Loader
 let albums = [];
+let graph = null;
+let simulation = null;
+let svg = null;
+let tooltip = null;
+let currentView = 'network';
+
+// Connection visibility toggles
+let connectionVisibility = {
+  wing_connection: true,
+  intra_wing_connection: true,
+  inter_wing_connection: true,
+  functional_bridge: true,
+  hub_bridge: true,
+  creates: true
+};
+
+// Search and filter state
+let searchTerm = '';
+let selectedWing = 'all';
+let filteredNodes = [];
+let filteredLinks = [];
 
 // List of JSON files to load
 const dataFiles = [
@@ -18,6 +39,9 @@ async function loadAlbumData() {
     
     // Initialize the visualization
     initializeVisualization();
+    setupControls();
+    updateMachineStats();
+    createWingLegend();
   } catch (error) {
     console.error('Error loading album data:', error);
     // Fallback to empty array if loading fails
@@ -29,7 +53,22 @@ async function loadAlbumData() {
 // Initialize visualization with loaded data
 function initializeVisualization() {
   // Convert albums to graph format
-  const graph = convertAlbumsToGraph(albums);
+  graph = convertAlbumsToGraph(albums);
+  
+  // Reset filters
+  filteredNodes = [...graph.nodes];
+  filteredLinks = [...graph.links];
+  
+  if (currentView === 'network') {
+    initializeNetworkView();
+  } else if (currentView === 'blueprint') {
+    initializeBlueprintView();
+  } else if (currentView === 'timeline') {
+    initializeTimelineView();
+  } else if (currentView === 'map') {
+    initializeMapView();
+  }
+}
 
 // Machine Wing Classification System
 function classifyAlbumWing(album) {
@@ -266,14 +305,50 @@ function convertAlbumsToGraph(albums) {
   
   return { nodes, links };
 }
+
+function initializeNetworkView() {
   const width = 900, height = 600;
-  const svg = d3.select("#music-map")
-      .attr("viewBox", [0, 0, width, height]);
+  svg = d3.select("#music-map")
+      .attr("viewBox", [0, 0, width, height])
+      .call(d3.zoom()
+        .scaleExtent([0.5, 3])
+        .on("zoom", function(event) {
+          svg.select(".main-group").attr("transform", event.transform);
+        }));
   
-  const tooltip = d3.select("#tooltip");
+  // Clear previous content
+  svg.selectAll("*").remove();
+  
+  // Create main group for zoomable content
+  const mainGroup = svg.append("g").attr("class", "main-group");
+  
+  // Add grid overlay for technical feel
+  const gridGroup = mainGroup.append("g").attr("class", "grid-overlay");
+  
+  // Vertical grid lines
+  for (let x = 0; x <= width; x += 50) {
+    gridGroup.append("line")
+      .attr("class", "grid-line")
+      .attr("x1", x)
+      .attr("y1", 0)
+      .attr("x2", x)
+      .attr("y2", height);
+  }
+  
+  // Horizontal grid lines
+  for (let y = 0; y <= height; y += 50) {
+    gridGroup.append("line")
+      .attr("class", "grid-line")
+      .attr("x1", 0)
+      .attr("y1", y)
+      .attr("x2", width)
+      .attr("y2", y);
+  }
+  
+  tooltip = d3.select("#tooltip");
   
   // Set up simulation with wing-based forces
-  const simulation = d3.forceSimulation(graph.nodes)
+  simulation = d3.forceSimulation(graph.nodes)
       .force("link", d3.forceLink(graph.links).id(d => d.id).distance(d => {
         if (d.type === "wing_connection") return 80;
         if (d.type === "creates") return 60;
@@ -301,11 +376,11 @@ function convertAlbumsToGraph(albums) {
       .force("collision", d3.forceCollide().radius(d => d.size + 10));
   
   // Draw links with wing-based styling
-  const link = svg.append("g")
+  const link = mainGroup.append("g")
     .selectAll("line")
     .data(graph.links)
     .join("line")
-      .attr("class", "link")
+      .attr("class", d => `link ${d.type}`)
       .attr("stroke", d => {
         if (d.type === "wing_connection") return "#555";
         if (d.type === "creates") return "#74b9ff";
@@ -338,10 +413,11 @@ function convertAlbumsToGraph(albums) {
         if (d.type === "inter_wing_connection") return 0.4;
         if (d.type === "functional_bridge") return 0.5;
         return 0.3;
-      });
+      })
+      .style("display", d => connectionVisibility[d.type] ? "block" : "none");
   
   // Draw nodes with wing-based colors
-  const node = svg.append("g")
+  const node = mainGroup.append("g")
     .selectAll("circle")
     .data(graph.nodes)
     .join("circle")
@@ -397,10 +473,17 @@ function convertAlbumsToGraph(albums) {
           d3.select(this).transition().attr("r", d.size);
           tooltip.transition().style("opacity", 0);
       })
+      .on("click", function(e, d) {
+          // Highlight connected nodes
+          highlightConnectedNodes(d);
+      })
+      .on("dblclick", function(e, d) {
+          centerOnNode(d);
+      })
       .call(drag(simulation));
   
   // Node labels
-  svg.append("g")
+  mainGroup.append("g")
     .selectAll("text")
     .data(graph.nodes)
     .join("text")
@@ -422,32 +505,388 @@ function convertAlbumsToGraph(albums) {
         .attr("cx", d => d.x)
         .attr("cy", d => d.y);
   
-    svg.selectAll("text")
+    mainGroup.selectAll("text")
         .attr("x", d => d.x)
         .attr("y", d => d.y);
   });
   
-  // Drag functionality
+  // Enhanced drag functionality
   function drag(simulation) {
     function dragstarted(event, d) {
-      if (!event.active) simulation.alphaTarget(0.2).restart();
+      if (!event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x;
       d.fy = d.y;
     }
+    
     function dragged(event, d) {
       d.fx = event.x;
       d.fy = event.y;
     }
+    
     function dragended(event, d) {
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
       d.fy = null;
     }
+    
     return d3.drag()
         .on("start", dragstarted)
         .on("drag", dragged)
         .on("end", dragended);
   }
+}
+
+// Alternative view implementations (placeholders for future development)
+function initializeBlueprintView() {
+  const width = 900, height = 600;
+  svg = d3.select("#music-map")
+      .attr("viewBox", [0, 0, width, height]);
+  
+  // Clear existing visualization
+  svg.selectAll("*").remove();
+  
+  // Blueprint view placeholder
+  svg.append("text")
+    .attr("x", width/2)
+    .attr("y", height/2)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "24px")
+    .attr("fill", "#74b9ff")
+    .text("Blueprint View - Coming Soon");
+  
+  svg.append("text")
+    .attr("x", width/2)
+    .attr("y", height/2 + 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "16px")
+    .attr("fill", "#999")
+    .text("Hierarchical machine blueprint with technical specifications");
+}
+
+function initializeTimelineView() {
+  const width = 900, height = 600;
+  svg = d3.select("#music-map")
+      .attr("viewBox", [0, 0, width, height]);
+  
+  // Clear existing visualization
+  svg.selectAll("*").remove();
+  
+  // Timeline view placeholder  
+  svg.append("text")
+    .attr("x", width/2)
+    .attr("y", height/2)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "24px")
+    .attr("fill", "#74b9ff")
+    .text("Timeline View - Coming Soon");
+  
+  svg.append("text")
+    .attr("x", width/2)
+    .attr("y", height/2 + 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "16px")
+    .attr("fill", "#999")
+    .text("Chronological evolution of the machine over time");
+}
+
+function initializeMapView() {
+  const width = 900, height = 600;
+  svg = d3.select("#music-map")
+      .attr("viewBox", [0, 0, width, height]);
+  
+  // Clear existing visualization
+  svg.selectAll("*").remove();
+  
+  // Map view placeholder
+  svg.append("text")
+    .attr("x", width/2)
+    .attr("y", height/2)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "24px")
+    .attr("fill", "#74b9ff")
+    .text("Spatial Map View - Coming Soon");
+  
+  svg.append("text")
+    .attr("x", width/2)
+    .attr("y", height/2 + 30)
+    .attr("text-anchor", "middle")
+    .attr("font-size", "16px")
+    .attr("fill", "#999")
+    .text("Geographic/conceptual mapping of musical influences");
+}
+
+// Helper functions for enhanced interactions
+function highlightConnectedNodes(selectedNode) {
+  const connectedNodeIds = new Set();
+  
+  // Find all connected nodes
+  graph.links.forEach(link => {
+    if (link.source.id === selectedNode.id || link.source === selectedNode.id) {
+      connectedNodeIds.add(link.target.id || link.target);
+    }
+    if (link.target.id === selectedNode.id || link.target === selectedNode.id) {
+      connectedNodeIds.add(link.source.id || link.source);
+    }
+  });
+  
+  // Add the selected node itself
+  connectedNodeIds.add(selectedNode.id);
+  
+  // Update node styling
+  svg.selectAll("circle")
+    .style("opacity", d => connectedNodeIds.has(d.id) ? 1 : 0.2)
+    .style("stroke-width", d => d.id === selectedNode.id ? 6 : 
+           connectedNodeIds.has(d.id) ? 3 : 1);
+  
+  // Update link styling
+  svg.selectAll("line")
+    .style("opacity", d => {
+      const isConnected = (d.source.id === selectedNode.id || d.source === selectedNode.id) ||
+                         (d.target.id === selectedNode.id || d.target === selectedNode.id);
+      return isConnected ? 1 : 0.1;
+    });
+  
+  // Update text styling
+  svg.selectAll("text")
+    .style("opacity", d => connectedNodeIds.has(d.id) ? 1 : 0.3);
+}
+
+function centerOnNode(node) {
+  const width = 900, height = 600;
+  const scale = 1.5;
+  const x = -node.x * scale + width / 2;
+  const y = -node.y * scale + height / 2;
+  
+  svg.transition()
+    .duration(750)
+    .call(
+      d3.zoom().transform,
+      d3.zoomIdentity.translate(x, y).scale(scale)
+    );
+}
+
+function resetHighlight() {
+  svg.selectAll("circle")
+    .style("opacity", 1)
+    .style("stroke-width", d => {
+      if (d.group === "wing_hub") return 4;
+      if (d.group === "album") return 2;
+      return 1.5;
+    });
+  
+  svg.selectAll("line")
+    .style("opacity", d => {
+      if (d.type === "wing_connection") return 0.7;
+      if (d.type === "creates") return 0.8;
+      if (d.type === "hub_bridge") return 0.9;
+      if (d.type === "intra_wing_connection") return 0.6;
+      if (d.type === "inter_wing_connection") return 0.4;
+      if (d.type === "functional_bridge") return 0.5;
+      return 0.3;
+    });
+  
+  svg.selectAll("text")
+    .style("opacity", 1);
+}
+
+// Control system setup
+function setupControls() {
+  // View mode selector
+  d3.select("#viewMode").on("change", function() {
+    currentView = this.value;
+    initializeVisualization();
+  });
+  
+  // Search functionality
+  d3.select("#searchInput").on("input", function() {
+    searchTerm = this.value.toLowerCase();
+    applyFilters();
+  });
+  
+  // Wing filter
+  d3.select("#wingFilter").on("change", function() {
+    selectedWing = this.value;
+    applyFilters();
+  });
+  
+  // Connection toggle buttons
+  d3.select("#toggleWingConnections").on("click", function() {
+    toggleConnectionType(['wing_connection', 'creates'], this);
+  });
+  
+  d3.select("#toggleIntraConnections").on("click", function() {
+    toggleConnectionType(['intra_wing_connection'], this);
+  });
+  
+  d3.select("#toggleInterConnections").on("click", function() {
+    toggleConnectionType(['inter_wing_connection'], this);
+  });
+  
+  d3.select("#toggleBridges").on("click", function() {
+    toggleConnectionType(['functional_bridge', 'hub_bridge'], this);
+  });
+  
+  // Reset view button
+  d3.select("#resetHighlight").on("click", function() {
+    resetHighlight();
+    // Reset zoom
+    svg.transition().duration(750).call(
+      d3.zoom().transform,
+      d3.zoomIdentity
+    );
+  });
+}
+
+function applyFilters() {
+  if (!graph) return;
+  
+  // Filter nodes based on search and wing selection
+  filteredNodes = graph.nodes.filter(node => {
+    // Wing filter
+    if (selectedWing !== 'all' && node.wing.id !== selectedWing) {
+      return false;
+    }
+    
+    // Search filter
+    if (searchTerm) {
+      const searchableText = [
+        node.id,
+        node.data?.artist || '',
+        node.data?.title || '',
+        node.wing.name,
+        node.data?.core_drive || '',
+        node.data?.subsystem_role || ''
+      ].join(' ').toLowerCase();
+      
+      if (!searchableText.includes(searchTerm)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  // Filter links to only show connections between visible nodes
+  const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
+  filteredLinks = graph.links.filter(link => 
+    visibleNodeIds.has(link.source.id || link.source) && 
+    visibleNodeIds.has(link.target.id || link.target)
+  );
+  
+  updateVisualization();
+}
+
+function updateVisualization() {
+  if (!svg || currentView !== 'network') return;
+  
+  // Update node visibility
+  svg.selectAll("circle")
+    .style("display", d => filteredNodes.includes(d) ? "block" : "none")
+    .style("opacity", d => filteredNodes.includes(d) ? 1 : 0.2);
+  
+  // Update link visibility
+  svg.selectAll("line")
+    .style("display", d => {
+      const isVisible = filteredLinks.includes(d) && connectionVisibility[d.type];
+      return isVisible ? "block" : "none";
+    });
+  
+  // Update text visibility
+  svg.selectAll("text")
+    .style("display", d => filteredNodes.includes(d) ? "block" : "none");
+  
+  // Restart simulation with filtered data
+  if (simulation) {
+    simulation.nodes(filteredNodes);
+    simulation.force("link").links(filteredLinks);
+    simulation.alpha(0.3).restart();
+  }
+}
+
+// Connection toggle logic
+function toggleConnectionType(types, button) {
+  const isActive = button.classList.contains('active');
+  
+  types.forEach(type => {
+    connectionVisibility[type] = !isActive;
+  });
+  
+  // Update button state
+  button.classList.toggle('active');
+  
+  // Update visualization
+  updateConnectionVisibility();
+}
+
+function updateConnectionVisibility() {
+  if (!svg) return;
+  
+  svg.selectAll("line").style("display", d => 
+    connectionVisibility[d.type] ? "block" : "none"
+  );
+}
+
+// Machine statistics
+function updateMachineStats() {
+  const stats = calculateMachineStats();
+  const container = d3.select("#machine-stats");
+  
+  container.selectAll("*").remove();
+  
+  Object.entries(stats).forEach(([key, value]) => {
+    const item = container.append("div").attr("class", "stat-item");
+    item.append("div").attr("class", "stat-label").text(key);
+    item.append("div").attr("class", "stat-value").text(value);
+  });
+}
+
+function calculateMachineStats() {
+  const wingCounts = {};
+  const totalConnections = graph ? graph.links.length : 0;
+  
+  albums.forEach(album => {
+    const wing = classifyAlbumWing(album);
+    wingCounts[wing.name] = (wingCounts[wing.name] || 0) + 1;
+  });
+  
+  return {
+    "Total Albums": albums.length,
+    "Active Wings": Object.keys(wingCounts).length,
+    "Total Connections": totalConnections,
+    "Artists": new Set(albums.map(a => a.artist)).size,
+    "Date Range": albums.length > 0 ? 
+      `${Math.min(...albums.map(a => a.year))} - ${Math.max(...albums.map(a => a.year))}` : 
+      "No data"
+  };
+}
+
+// Wing legend
+function createWingLegend() {
+  const wings = {};
+  albums.forEach(album => {
+    const wing = classifyAlbumWing(album);
+    wings[wing.id] = wings[wing.id] || { ...wing, count: 0 };
+    wings[wing.id].count++;
+  });
+  
+  const container = d3.select(".legend-items");
+  container.selectAll("*").remove();
+  
+  Object.values(wings).forEach(wing => {
+    const item = container.append("div").attr("class", "legend-item");
+    
+    item.append("div")
+      .attr("class", "legend-color")
+      .style("background-color", wing.color);
+    
+    item.append("div")
+      .attr("class", "legend-label")
+      .text(wing.name.split(' ')[0]);
+    
+    item.append("div")
+      .attr("class", "legend-count")
+      .text(wing.count);
+  });
 }
 
 // Start loading data when page loads

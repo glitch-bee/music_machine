@@ -6,9 +6,53 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>The Music Machine</h1>
-    <svg id="music-map" width="900" height="600"></svg>
-    <div id="tooltip" style="opacity:0; position:absolute; pointer-events:none;"></div>
+    <header>
+        <h1>The Music Machine</h1>
+        <div class="controls">
+            <div class="view-selector">
+                <label>View Mode:</label>
+                <select id="viewMode">
+                    <option value="network">Network Graph</option>
+                    <option value="blueprint">Blueprint</option>
+                    <option value="timeline">Timeline</option>
+                    <option value="map">Spatial Map</option>
+                </select>
+            </div>
+            <div class="search-controls">
+                <input type="text" id="searchInput" placeholder="Search albums, artists, or wings...">
+                <select id="wingFilter">
+                    <option value="all">All Wings</option>
+                    <option value="atmospheric">Atmospheric</option>
+                    <option value="propulsion">Propulsion</option>
+                    <option value="memory">Memory</option>
+                    <option value="processing">Processing</option>
+                    <option value="testing">Testing</option>
+                </select>
+            </div>
+            <div class="layer-controls">
+                <label>Connections:</label>
+                <button id="toggleWingConnections" class="toggle-btn active">Wing</button>
+                <button id="toggleIntraConnections" class="toggle-btn active">Intra-Wing</button>
+                <button id="toggleInterConnections" class="toggle-btn active">Inter-Wing</button>
+                <button id="toggleBridges" class="toggle-btn active">Bridges</button>
+                <button id="resetHighlight" class="toggle-btn">Reset View</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div id="visualization-container">
+            <svg id="music-map" width="900" height="600"></svg>
+            <div id="wing-legend" class="legend">
+                <h3>Machine Wings</h3>
+                <div class="legend-items"></div>
+            </div>
+        </div>
+        <div id="tooltip" style="opacity:0; position:absolute; pointer-events:none;"></div>
+        <div id="info-panel" class="info-panel">
+            <h3>Machine Status</h3>
+            <div id="machine-stats"></div>
+        </div>
+    </main>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="script.js"></script>
 </body>
