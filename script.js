@@ -22,20 +22,11 @@ let selectedWing = 'all';
 let filteredNodes = [];
 let filteredLinks = [];
 
-// List of JSON files to load
-const dataFiles = [
-  'data/core_albums.json',
-  'data/experimental_albums.json'
-];
-
 // Load and merge all album data
 async function loadAlbumData() {
   try {
-    const promises = dataFiles.map(file => fetch(file).then(res => res.json()));
-    const dataArrays = await Promise.all(promises);
-    
-    // Merge all arrays into one
-    albums = dataArrays.flat();
+    // Use the DataLoader module to load album data
+    albums = await DataLoader.loadAlbumData();
     
     // Initialize the visualization
     initializeVisualization();
@@ -43,7 +34,7 @@ async function loadAlbumData() {
     updateMachineStats();
     createWingLegend();
   } catch (error) {
-    console.error('Error loading album data:', error);
+    console.error('Error in loadAlbumData:', error);
     // Fallback to empty array if loading fails
     albums = [];
     initializeVisualization();
@@ -430,112 +421,49 @@ function centerOnNode(node) {
 }
 
 function resetHighlight() {
-  svg.selectAll("circle")
-    .style("opacity", 1)
-    .style("stroke-width", d => {
-      if (d.group === "wing_hub") return 4;
-      if (d.group === "album") return 2;
-      return 1.5;
-    });
-  
-  svg.selectAll("line")
-    .style("opacity", d => {
-      if (d.type === "wing_connection") return 0.7;
-      if (d.type === "creates") return 0.8;
-      if (d.type === "hub_bridge") return 0.9;
-      if (d.type === "intra_wing_connection") return 0.6;
-      if (d.type === "inter_wing_connection") return 0.4;
-      if (d.type === "functional_bridge") return 0.5;
-      return 0.3;
-    });
-  
-  svg.selectAll("text")
-    .style("opacity", 1);
+  UIControls.resetHighlight(svg);
+}
+
+function resetZoom() {
+  UIControls.resetZoom(svg);
 }
 
 // Control system setup
 function setupControls() {
-  // View mode selector
-  d3.select("#viewMode").on("change", function() {
-    currentView = this.value;
-    initializeVisualization();
-  });
-  
-  // Search functionality
-  d3.select("#searchInput").on("input", function() {
-    searchTerm = this.value.toLowerCase();
-    applyFilters();
-  });
-  
-  // Wing filter
-  d3.select("#wingFilter").on("change", function() {
-    selectedWing = this.value;
-    applyFilters();
-  });
-  
-  // Connection toggle buttons
-  d3.select("#toggleWingConnections").on("click", function() {
-    toggleConnectionType(['wing_connection', 'creates'], this);
-  });
-  
-  d3.select("#toggleIntraConnections").on("click", function() {
-    toggleConnectionType(['intra_wing_connection'], this);
-  });
-  
-  d3.select("#toggleInterConnections").on("click", function() {
-    toggleConnectionType(['inter_wing_connection'], this);
-  });
-  
-  d3.select("#toggleBridges").on("click", function() {
-    toggleConnectionType(['functional_bridge', 'hub_bridge'], this);
-  });
-  
-  // Reset view button
-  d3.select("#resetHighlight").on("click", function() {
-    resetHighlight();
-    // Reset zoom
-    svg.transition().duration(750).call(
-      d3.zoom().transform,
-      d3.zoomIdentity
-    );
+  // Set up UI controls with callbacks
+  UIControls.setupControls({
+    onViewModeChange: (newView) => {
+      currentView = newView;
+      initializeVisualization();
+    },
+    onSearchChange: (searchTerm) => {
+      window.searchTerm = searchTerm;
+      applyFilters();
+    },
+    onWingFilterChange: (selectedWing) => {
+      window.selectedWing = selectedWing;
+      applyFilters();
+    },
+    onConnectionToggle: (types, isVisible) => {
+      types.forEach(type => {
+        connectionVisibility[type] = isVisible;
+      });
+      updateConnectionVisibility();
+    },
+    onResetView: () => {
+      resetHighlight();
+      resetZoom();
+    }
   });
 }
 
 function applyFilters() {
   if (!graph) return;
   
-  // Filter nodes based on search and wing selection
-  filteredNodes = graph.nodes.filter(node => {
-    // Wing filter
-    if (selectedWing !== 'all' && node.wing.id !== selectedWing) {
-      return false;
-    }
-    
-    // Search filter
-    if (searchTerm) {
-      const searchableText = [
-        node.id,
-        node.data?.artist || '',
-        node.data?.title || '',
-        node.wing.name,
-        node.data?.core_drive || '',
-        node.data?.subsystem_role || ''
-      ].join(' ').toLowerCase();
-      
-      if (!searchableText.includes(searchTerm)) {
-        return false;
-      }
-    }
-    
-    return true;
-  });
-  
-  // Filter links to only show connections between visible nodes
-  const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
-  filteredLinks = graph.links.filter(link => 
-    visibleNodeIds.has(link.source.id || link.source) && 
-    visibleNodeIds.has(link.target.id || link.target)
-  );
+  // Use UIControls to apply filters
+  const filtered = UIControls.applyFilters(graph, searchTerm, selectedWing);
+  filteredNodes = filtered.filteredNodes;
+  filteredLinks = filtered.filteredLinks;
   
   updateVisualization();
 }
@@ -543,51 +471,15 @@ function applyFilters() {
 function updateVisualization() {
   if (!svg || currentView !== 'network') return;
   
-  // Update node visibility
-  svg.selectAll("circle")
-    .style("display", d => filteredNodes.includes(d) ? "block" : "none")
-    .style("opacity", d => filteredNodes.includes(d) ? 1 : 0.2);
-  
-  // Update link visibility
-  svg.selectAll("line")
-    .style("display", d => {
-      const isVisible = filteredLinks.includes(d) && connectionVisibility[d.type];
-      return isVisible ? "block" : "none";
-    });
-  
-  // Update text visibility
-  svg.selectAll("text")
-    .style("display", d => filteredNodes.includes(d) ? "block" : "none");
-  
-  // Restart simulation with filtered data
-  if (simulation) {
-    simulation.nodes(filteredNodes);
-    simulation.force("link").links(filteredLinks);
-    simulation.alpha(0.3).restart();
-  }
-}
-
-// Connection toggle logic
-function toggleConnectionType(types, button) {
-  const isActive = button.classList.contains('active');
-  
-  types.forEach(type => {
-    connectionVisibility[type] = !isActive;
-  });
-  
-  // Update button state
-  button.classList.toggle('active');
-  
-  // Update visualization
-  updateConnectionVisibility();
+  // Use UIControls to update visualization
+  UIControls.updateVisualization(svg, filteredNodes, filteredLinks, connectionVisibility, simulation);
 }
 
 function updateConnectionVisibility() {
   if (!svg) return;
   
-  svg.selectAll("line").style("display", d => 
-    connectionVisibility[d.type] ? "block" : "none"
-  );
+  // Use UIControls to update connection visibility
+  UIControls.updateConnectionVisibility(svg, connectionVisibility);
 }
 
 // Machine statistics
