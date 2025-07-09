@@ -31,8 +31,8 @@ async function loadAlbumData() {
     // Initialize the visualization
     initializeVisualization();
     setupControls();
-    updateMachineStats();
-    createWingLegend();
+    VisualizationHelpers.updateMachineStats(albums, graph);
+    VisualizationHelpers.createWingLegend(albums);
   } catch (error) {
     console.error('Error in loadAlbumData:', error);
     // Fallback to empty array if loading fails
@@ -100,7 +100,7 @@ function initializeNetworkView() {
       .attr("y2", y);
   }
   
-  tooltip = d3.select("#tooltip");
+  tooltip = VisualizationHelpers.initializeTooltip();
   
   // Set up simulation with wing-based forces
   simulation = d3.forceSimulation(graph.nodes)
@@ -197,36 +197,14 @@ function initializeNetworkView() {
       })
       .on("mouseover", function(e, d) {
           d3.select(this).transition().attr("r", d.size * 1.25);
-          tooltip.transition().style("opacity", 1);
-          
-          let tooltipContent = `<strong>${d.id}</strong><br>`;
-          
-          if (d.type === "wing_hub") {
-            tooltipContent += `<em>${d.wing.name}</em><br>`;
-            tooltipContent += `<strong>Albums:</strong> ${d.data.albums.length}<br>`;
-            tooltipContent += `<strong>Function:</strong> ${d.wing.name.split(' ')[0]} processing and coordination`;
-          } else if (d.type === "album" && d.data) {
-            tooltipContent += `<em>${d.data.artist} (${d.data.year})</em><br>`;
-            tooltipContent += `<strong>Wing:</strong> ${d.wing.name}<br><br>`;
-            tooltipContent += `<strong>Core Drive:</strong> ${d.data.core_drive}<br>`;
-            tooltipContent += `<strong>Emotional Output:</strong> ${d.data.emotional_output}<br>`;
-            tooltipContent += `<strong>Subsystem Role:</strong> ${d.data.subsystem_role}`;
-          } else if (d.type === "artist") {
-            tooltipContent += `<em>Artist - ${d.wing.name}</em>`;
-          }
-          
-          tooltip.html(tooltipContent)
-            .style("left", (e.pageX + 15) + "px")
-            .style("top", (e.pageY - 30) + "px");
+          VisualizationHelpers.showTooltip(tooltip, d, e);
       })
       .on("mousemove", function(e) {
-          tooltip
-            .style("left", (e.pageX + 15) + "px")
-            .style("top", (e.pageY - 30) + "px");
+          VisualizationHelpers.updateTooltipPosition(tooltip, e);
       })
       .on("mouseout", function(e, d) {
           d3.select(this).transition().attr("r", d.size);
-          tooltip.transition().style("opacity", 0);
+          VisualizationHelpers.hideTooltip(tooltip);
       })
       .on("click", function(e, d) {
           // Highlight connected nodes
@@ -480,69 +458,6 @@ function updateConnectionVisibility() {
   
   // Use UIControls to update connection visibility
   UIControls.updateConnectionVisibility(svg, connectionVisibility);
-}
-
-// Machine statistics
-function updateMachineStats() {
-  const stats = calculateMachineStats();
-  const container = d3.select("#machine-stats");
-  
-  container.selectAll("*").remove();
-  
-  Object.entries(stats).forEach(([key, value]) => {
-    const item = container.append("div").attr("class", "stat-item");
-    item.append("div").attr("class", "stat-label").text(key);
-    item.append("div").attr("class", "stat-value").text(value);
-  });
-}
-
-function calculateMachineStats() {
-  const wingCounts = {};
-  const totalConnections = graph ? graph.links.length : 0;
-  
-  albums.forEach(album => {
-    const wing = WingClassifier.classifyAlbumWing(album);
-    wingCounts[wing.name] = (wingCounts[wing.name] || 0) + 1;
-  });
-  
-  return {
-    "Total Albums": albums.length,
-    "Active Wings": Object.keys(wingCounts).length,
-    "Total Connections": totalConnections,
-    "Artists": new Set(albums.map(a => a.artist)).size,
-    "Date Range": albums.length > 0 ? 
-      `${Math.min(...albums.map(a => a.year))} - ${Math.max(...albums.map(a => a.year))}` : 
-      "No data"
-  };
-}
-
-// Wing legend
-function createWingLegend() {
-  const wings = {};
-  albums.forEach(album => {
-    const wing = WingClassifier.classifyAlbumWing(album);
-    wings[wing.id] = wings[wing.id] || { ...wing, count: 0 };
-    wings[wing.id].count++;
-  });
-  
-  const container = d3.select(".legend-items");
-  container.selectAll("*").remove();
-  
-  Object.values(wings).forEach(wing => {
-    const item = container.append("div").attr("class", "legend-item");
-    
-    item.append("div")
-      .attr("class", "legend-color")
-      .style("background-color", wing.color);
-    
-    item.append("div")
-      .attr("class", "legend-label")
-      .text(wing.name.split(' ')[0]);
-    
-    item.append("div")
-      .attr("class", "legend-count")
-      .text(wing.count);
-  });
 }
 
 // Start loading data when page loads
