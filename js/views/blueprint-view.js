@@ -8,13 +8,15 @@
 // View state
 let blueprintSvg = null;
 let currentData = null;
+let currentGraph = null;
+let blueprintTooltip = null;
 
 /**
  * Initialize the blueprint view
  * @param {Object} context - Context object with data and elements
  */
 function initialize(context = {}) {
-  const { svg, albums, graph, filteredData } = context;
+  const { svg, albums, graph, filteredData, connectionVisibility, tooltip } = context;
   
   if (!svg) {
     console.error('Blueprint view requires SVG element');
@@ -23,6 +25,8 @@ function initialize(context = {}) {
   
   blueprintSvg = svg;
   currentData = albums || [];
+  currentGraph = graph;
+  blueprintTooltip = tooltip;
   
   const width = 900, height = 600;
   
@@ -39,7 +43,7 @@ function initialize(context = {}) {
   const hierarchicalData = convertToHierarchicalData(currentData, filteredData);
   
   // Create radial cluster visualization
-  createRadialCluster(blueprintSvg, hierarchicalData, width, height);
+  createRadialCluster(blueprintSvg, hierarchicalData, width, height, connectionVisibility);
   
   console.log('Blueprint view initialized');
 }
@@ -93,8 +97,9 @@ function convertToHierarchicalData(albums, filteredData = null) {
  * @param {Object} data - Hierarchical data
  * @param {Number} width - SVG width
  * @param {Number} height - SVG height
+ * @param {Object} connectionVisibility - Connection visibility settings
  */
-function createRadialCluster(svg, data, width, height) {
+function createRadialCluster(svg, data, width, height, connectionVisibility) {
   const radius = Math.min(width, height) / 2 - 100;
   
   // Create hierarchy
@@ -111,9 +116,9 @@ function createRadialCluster(svg, data, width, height) {
   const g = svg.append("g")
     .attr("transform", `translate(${width/2}, ${height/2})`);
   
-  // Draw links
+  // Draw hierarchical links first (underneath metadata connections)
   const linkGroup = g.append("g")
-    .attr("class", "links");
+    .attr("class", "hierarchical-links");
   
   linkGroup.selectAll("path")
     .data(root.links())
@@ -125,6 +130,11 @@ function createRadialCluster(svg, data, width, height) {
     .attr("stroke", "#74b9ff")
     .attr("stroke-width", 2)
     .attr("stroke-opacity", 0.6);
+  
+  // Add metadata connections overlay
+  if (currentGraph && currentGraph.links) {
+    drawMetadataConnections(g, root, currentGraph, connectionVisibility);
+  }
   
   // Draw nodes
   const nodeGroup = g.append("g")
@@ -148,7 +158,32 @@ function createRadialCluster(svg, data, width, height) {
       return "#ffffff"; // Albums
     })
     .attr("stroke", "#74b9ff")
-    .attr("stroke-width", 2);
+    .attr("stroke-width", 2)
+    .on("mouseover", function(e, d) {
+      d3.select(this).transition().attr("r", d => {
+        if (d.depth === 0) return 15;
+        if (d.depth === 1) return 10;
+        return 7;
+      });
+      if (blueprintTooltip && d.data.album) {
+        VisualizationHelpers.showTooltip(blueprintTooltip, d.data.album, e);
+      }
+    })
+    .on("mousemove", function(e) {
+      if (blueprintTooltip) {
+        VisualizationHelpers.updateTooltipPosition(blueprintTooltip, e);
+      }
+    })
+    .on("mouseout", function(e, d) {
+      d3.select(this).transition().attr("r", d => {
+        if (d.depth === 0) return 12;
+        if (d.depth === 1) return 8;
+        return 5;
+      });
+      if (blueprintTooltip) {
+        VisualizationHelpers.hideTooltip(blueprintTooltip);
+      }
+    });
   
   // Add text labels
   nodes.append("text")
@@ -286,6 +321,8 @@ function cleanup() {
   
   blueprintSvg = null;
   currentData = null;
+  currentGraph = null;
+  blueprintTooltip = null;
   console.log('Blueprint view cleaned up');
 }
 
@@ -296,6 +333,105 @@ function cleanup() {
 function update(context = {}) {
   cleanup();
   initialize(context);
+}
+
+/**
+ * Draw metadata connections overlay on radial layout
+ * @param {Object} g - Main group element
+ * @param {Object} root - Root hierarchy node
+ * @param {Object} graph - Graph data with metadata connections
+ * @param {Object} connectionVisibility - Connection visibility settings
+ */
+function drawMetadataConnections(g, root, graph, connectionVisibility) {
+  // Create a mapping from album names to radial positions
+  const albumPositions = new Map();
+  
+  // Build position mapping for albums
+  root.descendants().forEach(node => {
+    if (node.data.album) {
+      const albumKey = `${node.data.album.artist} – ${node.data.album.title}`;
+      // Convert radial coordinates to cartesian
+      const angle = node.x;
+      const radius = node.y;
+      const x = Math.cos(angle - Math.PI / 2) * radius;
+      const y = Math.sin(angle - Math.PI / 2) * radius;
+      albumPositions.set(albumKey, { x, y, node });
+    }
+  });
+  
+  // Filter graph links to only include connections between albums in the radial view
+  const metadataLinks = graph.links.filter(link => {
+    const sourceKey = link.source.id || link.source;
+    const targetKey = link.target.id || link.target;
+    return albumPositions.has(sourceKey) && albumPositions.has(targetKey);
+  });
+  
+  // Draw metadata connections
+  const metadataGroup = g.append("g")
+    .attr("class", "metadata-connections");
+  
+  metadataGroup.selectAll("line")
+    .data(metadataLinks)
+    .join("line")
+    .attr("class", d => `metadata-link ${d.type}`)
+    .attr("x1", d => {
+      const sourceKey = d.source.id || d.source;
+      const pos = albumPositions.get(sourceKey);
+      return pos ? pos.x : 0;
+    })
+    .attr("y1", d => {
+      const sourceKey = d.source.id || d.source;
+      const pos = albumPositions.get(sourceKey);
+      return pos ? pos.y : 0;
+    })
+    .attr("x2", d => {
+      const targetKey = d.target.id || d.target;
+      const pos = albumPositions.get(targetKey);
+      return pos ? pos.x : 0;
+    })
+    .attr("y2", d => {
+      const targetKey = d.target.id || d.target;
+      const pos = albumPositions.get(targetKey);
+      return pos ? pos.y : 0;
+    })
+    .attr("stroke", d => {
+      if (d.type === "wing_connection") return "#555";
+      if (d.type === "creates") return "#74b9ff";
+      if (d.type === "tag_connection") return "#e17055"; // Orange for tag connections
+      if (d.type === "intra_wing_connection") return "#00b894";
+      if (d.type === "inter_wing_connection") return "#fd79a8";
+      if (d.type === "functional_bridge") return "#fdcb6e";
+      if (d.type === "hub_bridge") return "#a29bfe";
+      return "#aaa";
+    })
+    .attr("stroke-width", d => {
+      if (d.type === "wing_connection") return 2;
+      if (d.type === "creates") return 1.5;
+      if (d.type === "tag_connection") return 1; // Thinner for blueprint aesthetic
+      if (d.type === "hub_bridge") return 3;
+      return 1;
+    })
+    .attr("stroke-dasharray", d => {
+      if (d.type === "wing_connection") return "0";
+      if (d.type === "creates") return "0";
+      if (d.type === "tag_connection") return "3,2"; // Subtle dash for tags
+      if (d.type === "intra_wing_connection") return "5,5";
+      if (d.type === "inter_wing_connection") return "10,5";
+      if (d.type === "functional_bridge") return "8,4";
+      if (d.type === "hub_bridge") return "12,8";
+      return "5,5";
+    })
+    .attr("opacity", d => {
+      if (d.type === "wing_connection") return 0.5;
+      if (d.type === "creates") return 0.6;
+      if (d.type === "tag_connection") return 0.4; // More subtle in blueprint
+      if (d.type === "hub_bridge") return 0.7;
+      if (d.type === "intra_wing_connection") return 0.4;
+      if (d.type === "inter_wing_connection") return 0.3;
+      if (d.type === "functional_bridge") return 0.4;
+      return 0.3;
+    })
+    .style("display", d => connectionVisibility && connectionVisibility[d.type] ? "block" : "none");
 }
 
 // Export functions for use in other modules
