@@ -5,6 +5,8 @@
  * using D3.js force simulation for dynamic layout.
  */
 
+console.log('Network view script loading...');
+
 // View state
 let networkSvg = null;
 let networkSimulation = null;
@@ -15,7 +17,6 @@ let nodeSelection = null;
 let labelSelection = null;
 
 /**
- * Initialize the/**
  * Highlight connected nodes for the given node
  * @param {Object} node - Node to highlight connections for
  */

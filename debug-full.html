@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Music Machine Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #debug-output { background: #f0f0f0; padding: 10px; margin-bottom: 20px; max-height: 300px; overflow-y: auto; }
+        #music-map { border: 1px solid #ccc; }
+        .error { color: red; }
+        .success { color: green; }
+        .info { color: blue; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>Music Machine Debug</h1>
+    <div id="debug-output"></div>
+    <svg id="music-map" width="900" height="600"></svg>
+    <div id="tooltip" style="opacity:0; position:absolute; pointer-events:none;"></div>
+    
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="js/utils/wing-classifier.js"></script>
+    <script src="js/data/data-loader.js"></script>
+    <script src="js/data/graph-converter.js"></script>
+    <script src="js/ui/controls.js"></script>
+    <script src="js/ui/visualization-helpers.js"></script>
+    <script src="js/views/network-view.js"></script>
+    <script src="js/views/view-manager.js"></script>
+    
+    <script>
+        const debug = document.getElementById('debug-output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            debug.appendChild(div);
+            console.log(message);
+        }
+        
+        // Override console methods to capture all output
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = function(...args) {
+            log(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            log(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        
+        console.warn = function(...args) {
+            log(args.join(' '), 'warning');
+            originalWarn.apply(console, args);
+        };
+        
+        // Test basic availability
+        log('Testing module availability...', 'info');
+        log('D3: ' + (typeof d3 !== 'undefined' ? 'OK' : 'MISSING'), typeof d3 !== 'undefined' ? 'success' : 'error');
+        log('WingClassifier: ' + (typeof WingClassifier !== 'undefined' ? 'OK' : 'MISSING'), typeof WingClassifier !== 'undefined' ? 'success' : 'error');
+        log('DataLoader: ' + (typeof DataLoader !== 'undefined' ? 'OK' : 'MISSING'), typeof DataLoader !== 'undefined' ? 'success' : 'error');
+        log('GraphConverter: ' + (typeof GraphConverter !== 'undefined' ? 'OK' : 'MISSING'), typeof GraphConverter !== 'undefined' ? 'success' : 'error');
+        log('NetworkView: ' + (typeof NetworkView !== 'undefined' ? 'OK' : 'MISSING'), typeof NetworkView !== 'undefined' ? 'success' : 'error');
+        log('ViewManager: ' + (typeof ViewManager !== 'undefined' ? 'OK' : 'MISSING'), typeof ViewManager !== 'undefined' ? 'success' : 'error');
+        
+        // Test data loading
+        async function testDataLoading() {
+            log('Starting data loading test...', 'info');
+            
+            try {
+                const albums = await DataLoader.loadAlbumData();
+                log(`Loaded ${albums.length} albums`, 'success');
+                
+                if (albums.length > 0) {
+                    log('First album: ' + albums[0].title, 'info');
+                    
+                    // Test wing classification
+                    const wing = WingClassifier.classifyAlbumWing(albums[0]);
+                    log(`First album wing: ${wing.name} (${wing.color})`, 'info');
+                    
+                    // Test graph conversion
+                    const graph = await GraphConverter.convertAlbumsToGraph(albums);
+                    log(`Graph nodes: ${graph.nodes.length}, links: ${graph.links.length}`, 'success');
+                    
+                    // Test network view initialization
+                    const svg = d3.select("#music-map");
+                    const tooltip = d3.select("#tooltip");
+                    
+                    const context = {
+                        graph: graph,
+                        albums: albums,
+                        connectionVisibility: {
+                            wing_connection: true,
+                            intra_wing_connection: true,
+                            inter_wing_connection: true,
+                            functional_bridge: true,
+                            hub_bridge: true,
+                            creates: true,
+                            tag_connection: true
+                        },
+                        svg: svg,
+                        tooltip: tooltip
+                    };
+                    
+                    log('Initializing network view...', 'info');
+                    NetworkView.initialize(context);
+                    log('Network view initialized', 'success');
+                    
+                } else {
+                    log('No albums loaded - cannot test visualization', 'error');
+                }
+                
+            } catch (error) {
+                log('Error in data loading test: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+        
+        // Run the test
+        testDataLoading();
+    </script>
+</body>
+</html>

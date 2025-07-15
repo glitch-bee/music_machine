@@ -43,6 +43,8 @@ function registerView(viewId, viewConfig) {
  * @param {Object} context - Context object with data and elements
  */
 function switchView(viewId, context = {}) {
+  console.log(`Switching to view: ${viewId}`);
+  
   if (!viewRegistry.has(viewId)) {
     console.error(`View not found: ${viewId}`);
     return false;
@@ -50,18 +52,22 @@ function switchView(viewId, context = {}) {
   
   // Cleanup current view
   if (currentActiveView) {
+    console.log(`Cleaning up current view: ${currentActiveView.id}`);
     currentActiveView.cleanup();
     currentActiveView.isActive = false;
   }
   
   // Initialize new view
   const newView = viewRegistry.get(viewId);
+  console.log(`Initializing new view: ${newView.id}, name: ${newView.name}`);
+  console.log(`Initialize function:`, newView.initialize);
+  
   try {
     newView.initialize(context);
     newView.isActive = true;
     currentActiveView = newView;
     
-    console.log(`Switched to view: ${viewId}`);
+    console.log(`Successfully switched to view: ${viewId}`);
     return true;
   } catch (error) {
     console.error(`Error initializing view ${viewId}:`, error);
@@ -123,18 +129,14 @@ function unregisterView(viewId) {
  */
 function initializeViewManager(context = {}) {
   // Register default views
+  console.log('Initializing view manager...');
+  console.log('NetworkView available:', typeof NetworkView !== 'undefined');
+  
   registerView('network', {
     name: 'Network Graph',
     description: 'Interactive network visualization of albums, artists, and connections',
     initialize: NetworkView.initialize,
     cleanup: NetworkView.cleanup
-  });
-  
-  registerView('blueprint', {
-    name: 'Technical Blueprint',
-    description: 'Hierarchical machine blueprint with technical specifications',
-    initialize: BlueprintView.initialize,
-    cleanup: BlueprintView.cleanup
   });
   
   registerView('timeline', {

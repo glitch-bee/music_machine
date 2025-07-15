@@ -67,24 +67,6 @@ async function initializeVisualization() {
   ViewManager.initializeViewManager(context);
 }
 
-function initializeBlueprintView() {
-  const width = 900, height = 600;
-  svg = d3.select("#music-map")
-      .attr("viewBox", [0, 0, width, height]);
-  
-  // Clear existing visualization
-  svg.selectAll("*").remove();
-  
-  // Blueprint view placeholder
-  svg.append("text")
-    .attr("x", width/2)
-    .attr("y", height/2)
-    .attr("text-anchor", "middle")
-    .attr("font-size", "24px")
-    .attr("fill", "#74b9ff")
-    .text("Blueprint View - Coming Soon");
-}
-
 function initializeTimelineView() {
   const width = 900, height = 600;
   svg = d3.select("#music-map")
