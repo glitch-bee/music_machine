@@ -6,12 +6,35 @@ This directory contains the scaffolding for AI-powered album analysis features. 
 
 ### Core AI Components
 - `js/ai/album-analyzer.js` - OpenAI integration for album analysis
+- `js/ai/analysis-config.js` - Configuration for custom prompts and analysis options
+- `js/ai/custom-gpt-integration.js` - Guide for integrating with custom GPT systems
 - `js/ui/album-input.js` - UI component for album input and preview
 - `css/ai-components.css` - Styles for AI components
 
 ### Integration Points
 - `index.html` - Added commented-out HTML for AI controls and panels
 - `script.js` - Added commented-out integration code
+
+## Enhanced AI Features
+
+### Advanced Prompt Engineering
+The AI system now includes sophisticated prompt engineering with:
+- **Detailed System Context**: Comprehensive understanding of The Music Machine framework
+- **Technical Vocabulary**: Precise language for treating music as technological systems
+- **Wing Classification System**: Detailed explanations of each wing's function and characteristics
+- **Metadata Tag System**: Extensive tag library for functional, state, and operational characteristics
+
+### Custom Analysis Options
+- **Analysis Types**: Technical, psychological, contextual, and integration-focused analysis
+- **Batch Processing**: Analyze multiple albums with consistent context
+- **Custom Prompts**: Load external prompts for specialized analysis
+- **Contextual Analysis**: Use existing album data to inform new analysis
+
+### Custom GPT Integration
+- **System Message Templates**: Ready-to-use prompts for custom GPT creation
+- **Knowledge Base**: Comprehensive technical specifications for training
+- **Example Prompts**: Tested prompts for consistent high-quality results
+- **Integration Workflows**: Multiple methods for connecting custom GPT systems
 
 ## Features Ready to Implement
 
