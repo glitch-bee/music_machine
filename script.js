@@ -236,3 +236,68 @@ function updateConnectionVisibility() {
 
 // Start loading data when page loads
 loadAlbumData();
+
+/**
+ * AI Features Integration
+ * 
+ * TODO: Uncomment when ready to implement AI features
+ */
+/*
+let albumAnalyzer = null;
+let albumInput = null;
+
+function initializeAIFeatures() {
+  const apiKey = localStorage.getItem('openai_api_key');
+  if (apiKey) {
+    albumAnalyzer = new AlbumAnalyzer(apiKey);
+    const inputContainer = document.getElementById('ai-input-panel');
+    
+    if (inputContainer) {
+      albumInput = new AlbumInput(inputContainer, albumAnalyzer, {
+        addAlbum: (albumData) => {
+          // Add to albums array
+          albums.push(albumData);
+          
+          // Regenerate graph
+          initializeVisualization();
+          
+          console.log('Album added to graph:', albumData);
+        }
+      });
+    }
+  }
+}
+
+function setupAIControls() {
+  const toggleBtn = document.getElementById('toggle-ai-panel');
+  const setKeyBtn = document.getElementById('set-api-key');
+  
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if (albumInput) {
+        albumInput.toggle();
+      } else {
+        alert('Please set your OpenAI API key first');
+      }
+    });
+  }
+
+  if (setKeyBtn) {
+    setKeyBtn.addEventListener('click', () => {
+      const apiKey = prompt('Enter your OpenAI API key:');
+      if (apiKey) {
+        localStorage.setItem('openai_api_key', apiKey);
+        initializeAIFeatures();
+        alert('API key saved! You can now use AI features.');
+      }
+    });
+  }
+}
+
+// Initialize AI features when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  // TODO: Uncomment when implementing AI features
+  // initializeAIFeatures();
+  // setupAIControls();
+});
+*/

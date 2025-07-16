@@ -37,6 +37,13 @@
                 <button id="toggleTagConnections" class="toggle-btn active">Tags</button>
                 <button id="resetHighlight" class="toggle-btn">Reset View</button>
             </div>
+            <!-- AI Controls - Currently disabled -->
+            <!-- 
+            <div class="ai-controls">
+                <button id="toggle-ai-panel">Add Album with AI</button>
+                <button id="set-api-key">Set API Key</button>
+            </div>
+            -->
         </div>
     </header>
     <main>
@@ -48,6 +55,12 @@
             </div>
         </div>
         <div id="tooltip" style="opacity:0; position:absolute; pointer-events:none;"></div>
+        <!-- AI Components - Currently disabled -->
+        <!-- 
+        <div id="ai-input-panel" class="ai-panel" style="display:none;">
+            AI components will be rendered here
+        </div>
+        -->
         <div id="info-panel" class="info-panel">
             <h3>Machine Status</h3>
             <div id="machine-stats"></div>
@@ -64,5 +77,11 @@
     <script src="js/views/map-view.js"></script>
     <script src="js/views/view-manager.js"></script>
     <script src="script.js"></script>
+    <!-- AI Components - Currently disabled -->
+    <!-- 
+    <link rel="stylesheet" href="css/ai-components.css">
+    <script src="js/ai/album-analyzer.js"></script>
+    <script src="js/ui/album-input.js"></script>
+    -->
 </body>
 </html>
